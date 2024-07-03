@@ -2,12 +2,12 @@
 
 # -- Project information
 
-project = 'Lumache'
-copyright = '2021, Graziella'
-author = 'Graziella'
+project = 'OpenRLHF'
+copyright = '2024, OpenLLMAI'
+author = 'OpenLLMAI'
 
-release = '0.1'
-version = '0.1.0'
+release = '0.3'
+version = '0.3.2'
 
 # -- General configuration
 
