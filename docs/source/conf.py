@@ -3,11 +3,11 @@
 # -- Project information
 
 project = 'OpenRLHF'
-copyright = '2024, OpenLLMAI'
-author = 'OpenLLMAI'
+copyright = '2024, OpenRLHF'
+author = 'OpenRLHF'
 
 release = '0.3'
-version = '0.3.2'
+version = '0.3.6'
 
 # -- General configuration
 

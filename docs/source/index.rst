@@ -1,7 +1,7 @@
 Welcome to OpenRLHF's documentation!
 ===================================
 
-OpenRLHF is an easy-to-use, scalable and high-performance RLHF Framework built on Ray, DeepSpeed and HF Transformers.
+`OpenRLHF <https://github.com/OpenRLHF/OpenRLHF>`_ is an easy-to-use, scalable and high-performance RLHF Framework built on Ray, DeepSpeed and HF Transformers.
 
 - **Simple and Easy-to-use**: OpenRLHF stands out as one of the simplest high-performance RLHF libraries available, fully compatible with Huggingface models and datasets.
 - **High Performance**: In RLHF training, 80% of the time is spent on the sample generation stage. OpenRLHF excels here, leveraging large inference batch sizes with Ray, Adam Offload (Pinned Memory), and vLLM generation acceleration. 
@@ -25,4 +25,4 @@ Contents
    quick_start
    usage
    performance
-   faq
+   multi-node

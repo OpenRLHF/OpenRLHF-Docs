@@ -6,60 +6,54 @@ Quick Start
 Installation
 ------------
 
-To use OpenRLHF, first ``git clone`` it and launch the docker container (**Recommended**):
+To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip install`` openrlhf inside the docker container:
 
 .. code-block:: bash
-
-   git clone https://github.com/openllmai/OpenRLHF.git
-
-   # If you need to use vLLM, please build a Docker image to avoid dependency issues (Optional)
-   docker build -t nvcr.io/nvidia/pytorch:24.02-py3 ./OpenRLHF/dockerfile
 
    # Launch the docker container
-   docker run --runtime=nvidia -it --rm --shm-size="10g" --cap-add=SYS_ADMIN -v $PWD/OpenRLHF:/openrlhf nvcr.io/nvidia/pytorch:24.02-py3 bash
+   docker run --runtime=nvidia -it --rm --shm-size="10g" --cap-add=SYS_ADMIN -v $PWD:/openrlhf nvcr.io/nvidia/pytorch:24.02-py3 bash
 
-Then ``pip install`` openrlhf inside the docker container
+   # pip install
+   pip install openrlhf
 
-.. code-block:: bash
+   # If you want to use vLLM acceleration (To install vLLM 0.4.2)
+   pip install openrlhf[vllm]
+   # latest vLLM is also supported (using Gloo)
+   pip install openrlhf[vllm_latest]
 
-   cd /openrlhf
-   pip install --user .
+   # pip install the latest version
+   pip install git+https://github.com/OpenRLHF/OpenRLHF.git
 
-   cd examples
+   # Or git clone
+   git clone https://github.com/OpenRLHF/OpenRLHF.git
+   cd OpenRLHF
+   pip install -e .
 
+.. note:: We recommend using vLLM 0.4.2, as versions 0.4.3+ currently only support weight synchronization (DeepSpeed to vLLM) via Gloo (``--vllm_sync_backend gloo``). 
+   We also provided the `Dockerfiles for vLLM <https://github.com/OpenRLHF/OpenRLHF/tree/main/dockerfile>`_  and  :ref:`nvidia-docker`.
 
 Prepare Datasets
 ----------------
 
-We provide multiple data processing methods in our dataset classes.
-Such as in the `Prompt Dataset <https://github.com/OpenLLMAI/OpenRLHF/blob/7e436a673b9603847429971290cfd46029c4b52b/openrlhf/datasets/prompts_dataset.py#L6>`_:
+OpenRLHF provides multiple data processing methods in our dataset classes.
+Such as in the `Prompt Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/9ab08aace2c9af7dfa7d8790380d400902deef00/openrlhf/datasets/prompts_dataset.py#L6>`_:
 
 .. code-block:: python
 
-   def preprocess_data(data, input_template=None, input_key=None, apply_chat_template=None) -> str:
-      # custom dataset
-      if input_key:
-         if apply_chat_template:
-            prompt = apply_chat_template(data[input_key], tokenize=False, add_generation_prompt=True)
-            input_template = None
-         else:
-            prompt = data[input_key]
+   def preprocess_data(data, input_template=None, input_key="input", apply_chat_template=None) -> str:
+      if apply_chat_template:
+         prompt = apply_chat_template(data[input_key], tokenize=False, add_generation_prompt=True)
       else:
-         # Open-Orca/OpenOrca
-         if exist_and_not_none(data, "system_prompt") and exist_and_not_none(data, "response"):
-            prompt = data["system_prompt"] + " " + data["question"]
-         .....
-
-      # input template
-      if input_template:
-         prompt = input_template.format(prompt)
+         prompt = data[input_key]
+         if input_template:
+            prompt = input_template.format(prompt)
       return prompt
 
-- We can use ``--input_key`` to specify the ``JSON key name`` of the input datasets ``--prompt_data {name or path}`` or ``--dataset {name or path}``, and use ``--apply_chat_template`` to utilize the ``chat_template`` from the `Huggingface Tokenizer <https://huggingface.co/docs/transformers/main/en/chat_templating>`_.
-- If you don't want to use ``apply_chat_template``, you can use ``--input_template`` instead, or preprocess the data format in advance.
-- We also support mixing multiple datasets using ``--prompt_data_probs 0.1,0.4,0.5`` or ``dataset_probs 0.1,0.4,0.5``.
+- We can use ``--input_key`` to specify the ``JSON key name`` of the input datasets ``--prompt_data {name or path}`` (PPO) or ``--dataset {name or path}``, and use ``--apply_chat_template`` to utilize the ``chat_template`` from the `Huggingface Tokenizer <https://huggingface.co/docs/transformers/main/en/chat_templating>`_.
+- If you don't want to use ``--apply_chat_template``, you can use ``--input_template`` instead, or preprocess the datasets offline in advance.
+- OpenRLHF also support mixing multiple datasets using ``--prompt_data_probs 0.1,0.4,0.5`` (PPO) or ``--dataset_probs 0.1,0.4,0.5``.
 
-Chat Templating Format
+How Chat Templating Works:
 
   .. code-block:: python
       
@@ -73,25 +67,26 @@ Chat Templating Format
 
    "<s>[INST] Hello, how are you? [/INST]I'm doing great. How can I help you today?</s> [INST] I'd like to show off how chat templating works! [/INST]"
 
-.. note:: The JSON key options depends on the specific datasets. 
-   See  `Reward Dataset <https://github.com/OpenLLMAI/OpenRLHF/blob/7e436a673b9603847429971290cfd46029c4b52b/openrlhf/datasets/reward_dataset.py#L10>`_ and `SFT Dataset <https://github.com/OpenLLMAI/OpenRLHF/blob/7e436a673b9603847429971290cfd46029c4b52b/openrlhf/datasets/sft_dataset.py#L9>`_
+.. note:: By default, we use ``train`` and ``test`` as splits to distinguish training and testing datasets from Huggingface.
+   The ``JSON key`` options depends on the specific datasets. 
+   See  `Reward Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/9ab08aace2c9af7dfa7d8790380d400902deef00/openrlhf/datasets/reward_dataset.py#L10>`_ and `SFT Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/9ab08aace2c9af7dfa7d8790380d400902deef00/openrlhf/datasets/sft_dataset.py#L9>`_
 
 Pretrained Models
 -----------------
 
-OpenRLHF's model checkpoint is fully compatible with HuggingFace models. You can directly specify the model name or path using ``--pretrain``, ``--reward_pretrain`` and ``--critic_pretrain``.
-We have provided some pre-trained checkpoints and datasets on `HuggingFace OpenLLMAI <https://huggingface.co/OpenLLMAI>`_.
+OpenRLHF's model checkpoint is fully compatible with HuggingFace models. You can specify the model name or path using ``--pretrain``, ``--reward_pretrain`` and ``--critic_pretrain``.
+We have provided some pre-trained checkpoints and datasets on `HuggingFace OpenRLHF <https://huggingface.co/OpenRLHF>`_.
 
 PPO without Ray
 ----------------
-Then you can use the startup scripts we provide in the `examples <https://github.com/OpenLLMAI/OpenRLHF/tree/main/examples>`_ directory, and start the training using the following command:
+Then you can use the startup scripts we provide in the `examples <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples>`_ directory, or start the training using the following command:
 
 
 .. code-block:: bash
 
-   deepspeed ./train_ppo.py \
-      --pretrain OpenLLMAI/Llama-3-8b-sft-mixture \
-      --reward_pretrain OpenLLMAI/Llama-3-8b-rm-mixture \
+   deepspeed --module openrlhf.cli.train_sft \
+      --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
+      --reward_pretrain OpenRLHF/Llama-3-8b-rm-mixture \
       --save_path ./checkpoint/llama-3-8b-rlhf \
       --save_steps -1 \
       --logging_steps 1 \
@@ -108,7 +103,7 @@ Then you can use the startup scripts we provide in the `examples <https://github
       --actor_learning_rate 5e-7 \
       --critic_learning_rate 9e-6 \
       --init_kl_coef 0.01 \
-      --prompt_data OpenLLMAI/prompt-collection-v0.1 \
+      --prompt_data OpenRLHF/prompt-collection-v0.1 \
       --input_key context_messages \
       --apply_chat_template \
       --max_samples 100000 \
@@ -119,5 +114,38 @@ Then you can use the startup scripts we provide in the `examples <https://github
       --use_wandb {wandb_token}
 
 - For the Ray PPO and vLLM, please refer to :ref:`rayppo`.
-- We provide usage scripts and docs for the supported algorithms in `examples/scripts <https://github.com/OpenLLMAI/OpenRLHF/tree/main/examples/scripts>`_ and :doc:`usage`.
+- OpenRLHF provides usage scripts and docs for the supported algorithms in `examples/scripts <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples/scripts>`_ and :doc:`usage`.
 
+.. _nvidia-docker:
+
+One-Click Installation Script of Nvidia-Docker
+---------------------------
+
+.. code-block:: bash
+
+   # remove old docker
+   sudo apt-get autoremove docker docker-ce docker-engine docker.io containerd runc
+   dpkg -l |grep ^rc|awk '{print $2}' |sudo xargs dpkg -P
+   sudo apt-get autoremove docker-ce-*
+   sudo rm -rf /etc/systemd/system/docker.service.d
+   sudo rm -rf /var/lib/docker
+
+   # install docker
+   curl https://get.docker.com | sh \
+   && sudo systemctl --now enable docker
+
+   # install nvidia-docker
+   distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+         && curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+         && curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
+               sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+               sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+   sudo apt-get update
+   sudo apt-get install -y nvidia-container-toolkit
+   sudo nvidia-ctk runtime configure --runtime=docker
+
+   sudo groupadd docker
+   sudo usermod -aG docker $USER
+   newgrp docker
+   docker ps
