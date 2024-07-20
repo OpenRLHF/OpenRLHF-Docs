@@ -37,6 +37,7 @@ Datasets
 - ``--max_samples``: Max training samples
 - ``--train_split``: HF datasets split for training, default value is ``train``
 - ``--eval_split``: HF datasets split for evaluation, default value is ``test``
+- ``--packing_samples``: Packing samples using Flash Attention 2
 
 LoRA
 
@@ -81,7 +82,7 @@ Options
 - ``--pretrain_mode``: Continue pretrain mode
 - ``--packing_samples``: Packing SFT samples
 
-.. note:: OpenRLHF SFT supports ``--packing_samples`` `using --flash_attn <https://github.com/MeetKai/functionary/tree/main/functionary/train/packing>`_
+.. note:: OpenRLHF SFT/DPO/RM trainers supports ``--packing_samples`` `using --flash_attn <https://github.com/MeetKai/functionary/tree/main/functionary/train/packing>`_
 
 
 
@@ -117,6 +118,7 @@ Options
 - ``--rejected_key`` JSON dataset key for rejected conversions
 - ``--tokenizer_chat_template``: Custom ``chat_template`` for HuggingFace tokenizer template
 - ``--value_head_prefix``: custom ``value_head`` (score head) prefix
+- ``--packing_samples``: Packing RM samples
 
 
 .. _rayppo:
@@ -264,6 +266,7 @@ Options
 - ``--beta`` The beta factor in DPO loss. Higher beta means less divergence from the initial policy. 
 - ``--ipo`` for IPO loss. 
 - ``--label_smoothing`` for cDPO loss. 
+- ``--packing_samples``: Packing DPO samples
 
 
 Kahneman-Tversky Optimization (KTO)
