@@ -82,7 +82,7 @@ Options
 - ``--pretrain_mode``: Continue pretrain mode
 - ``--packing_samples``: Packing SFT samples
 
-.. note:: OpenRLHF SFT/DPO/RM trainers supports ``--packing_samples`` `using --flash_attn <https://github.com/MeetKai/functionary/tree/main/functionary/train/packing>`_
+.. note:: OpenRLHF SFT/DPO/RM trainers support ``--packing_samples`` `using --flash_attn <https://github.com/MeetKai/functionary/tree/main/functionary/train/packing>`_
 
 
 
