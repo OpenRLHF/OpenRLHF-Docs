@@ -267,6 +267,7 @@ Options
 - ``--ipo`` for IPO loss. 
 - ``--label_smoothing`` for cDPO loss. 
 - ``--packing_samples``: Packing DPO samples
+- ``--nll_loss``: Regularization with NLL loss (See Llama 3.1 tech report)
 
 
 Kahneman-Tversky Optimization (KTO)
