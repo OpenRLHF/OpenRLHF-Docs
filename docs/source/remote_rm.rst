@@ -189,3 +189,5 @@ Then, we can specify ``remote_rm_urls`` during PPO training.
         --flash_attn \
         --gradient_checkpointing \
         --use_wandb {wandb_token}
+
+.. note:: We can use ``--critic_pretrain`` to specify the critic model. Otherwise the critic model is initialized using the actor model specified by ``--pretrain``.
