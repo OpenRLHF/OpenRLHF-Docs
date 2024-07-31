@@ -7,11 +7,12 @@ How to specify the reward model on a remote server?
 Suppose we have a scenario where we have deployed Llama3-405B, ArmoRM-Llama3-8B-v0.1, or a PairRM on a remote server. 
 We want to call these reward model services in RLHF. OpenRLHF provides an HTTP interface to achieve this. 
 
-First, we need to start a remote reward model server on the remote server, which can be modified using the code below.
+First, we need to start a remote reward model server on the remote server, which can be modified using the example below.
+
+`openrlhf.cli.serve_rm <https://github.com/OpenRLHF/OpenRLHF/blob/d2d61593dace33022b6748a7e0e7c36ccd05b888/openrlhf/cli/serve_rm.py#L1>`_
 
 .. code-block:: python
 
-    # openrlhf.cli.serve_rm
     import argparse
     import re
 
