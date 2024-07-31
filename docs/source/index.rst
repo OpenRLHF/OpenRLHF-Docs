@@ -27,3 +27,4 @@ Contents
    performance
    multi-node
    remote_rm
+   checkpoint
