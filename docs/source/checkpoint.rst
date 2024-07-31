@@ -4,9 +4,8 @@ Checkpoint
 How to save training checkpoints?
 ------------
 
-Since training large models is time-consuming and expensive, reloading checkpoints becomes crucial when the training crashes. 
-How to save training checkpoints (including model/optimizer/scheduler states and training dataset progress) during SFT/RLHF/DPO training? 
-OpenRLHF has re-implemented a DistributedSampler with resumable training dataset progress, and the checkpoint mechanism based on DeepSpeed's checkpoint API. 
+Since training large models is time-consuming and expensive, reloading checkpoints (including model/optimizer/scheduler states and training dataset progress) becomes crucial when the training crashes. 
+OpenRLHF has re-implemented the `DistributedSampler <https://github.com/OpenRLHF/OpenRLHF/blob/689e0faf5297c4fadd3ac1a26ae8a0040a1b913c/openrlhf/utils/distributed_sampler.py>`_ with resumable training dataset progress, and the checkpoint mechanism based on DeepSpeed's checkpoint API. 
 
 The examples are as follows,
 
