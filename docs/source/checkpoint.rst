@@ -94,5 +94,3 @@ Ray PPO with vLLM
       --ckpt_path /openrlhf/examples/checkpoint/ckpt/ \
       --load_checkpoint \
       --use_wandb {wandb_token}
-
-.. note:: We can use ``--critic_pretrain`` to specify the critic model. Otherwise the critic model is initialized using the actor model specified by ``--pretrain``.
