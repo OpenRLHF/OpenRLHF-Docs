@@ -37,7 +37,7 @@ Prepare Datasets
 ----------------
 
 OpenRLHF provides multiple data processing methods in our dataset classes.
-Such as in the `Prompt Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/ab89f6b857d22430190a5742924661134e40725c/openrlhf/datasets/prompts_dataset.py#L6>`_:
+Such as in the `Prompt Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/datasets/prompts_dataset.py#L6>`_:
 
 .. code-block:: python
 
@@ -70,7 +70,7 @@ How Chat Templating Works:
 
 .. note:: By default, we use ``train`` and ``test`` as splits to distinguish training and testing datasets from Huggingface.
    The ``JSON key`` options depends on the specific datasets. 
-   See  `Reward Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/ab89f6b857d22430190a5742924661134e40725c/openrlhf/datasets/reward_dataset.py#L10>`_ and `SFT Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/ab89f6b857d22430190a5742924661134e40725c/openrlhf/datasets/sft_dataset.py#L9>`_
+   See  `Reward Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/datasets/reward_dataset.py#L10>`_ and `SFT Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/ab89f6b857d22430190a5742924661134e40725c/openrlhf/datasets/sft_dataset.py#L9>`_
 
 Pretrained Models
 -----------------
