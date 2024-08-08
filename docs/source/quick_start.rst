@@ -56,7 +56,7 @@ Such as in the `Prompt Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/o
 
 How Chat Templating Works:
 
-  .. code-block:: python
+.. code-block:: python
       
    dataset = [{"input_key": [
       {"role": "user", "content": "Hello, how are you?"},
@@ -72,7 +72,7 @@ How to specify training and test datasets ?
 
 You can specify it using the ``data_type@data_dir`` format. For example, the dataset can be set as ``--dataset json@./data``.
 
-   .. code-block:: bash
+.. code-block:: bash
 
    data
    ├── test.jsonl
