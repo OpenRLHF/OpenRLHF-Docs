@@ -70,7 +70,7 @@ How Chat Templating Works:
 
 How to specify training and test datasets ?
 
-You can specify it using the `data_type@data_dir` format. For example, the dataset can be set as `--dataset json@./data`.
+You can specify it using the ``data_type@data_dir`` format. For example, the dataset can be set as ``--dataset json@./data``.
 
    .. code-block:: bash
 
