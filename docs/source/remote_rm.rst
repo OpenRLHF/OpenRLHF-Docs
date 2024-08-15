@@ -9,7 +9,7 @@ We want to call these reward model services in RLHF. OpenRLHF provides an HTTP i
 
 First, we need to start a remote reward model server on the remote server, which can be modified using the example below.
 
-`openrlhf.cli.serve_rm <https://github.com/OpenRLHF/OpenRLHF/blob/d2d61593dace33022b6748a7e0e7c36ccd05b888/openrlhf/cli/serve_rm.py#L1>`_
+`openrlhf.cli.serve_rm <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/cli/serve_rm.py#L1>`_
 
 .. code-block:: python
 
