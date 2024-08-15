@@ -56,7 +56,7 @@ Such as in the `Prompt Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/o
 
 How Chat Templating Works:
 
-  .. code-block:: python
+.. code-block:: python
       
    dataset = [{"input_key": [
       {"role": "user", "content": "Hello, how are you?"},
@@ -67,6 +67,17 @@ How Chat Templating Works:
    tokenizer.apply_chat_template(dataset[0]["input_key"], tokenize=False)
 
    "<s>[INST] Hello, how are you? [/INST]I'm doing great. How can I help you today?</s> [INST] I'd like to show off how chat templating works! [/INST]"
+
+How to specify training and test datasets ?
+
+You can specify it using the ``data_type@data_dir`` format. For example, the dataset can be set as ``--dataset json@./data``.
+
+.. code-block:: bash
+
+   data
+   ├── test.jsonl
+   └── train.jsonl
+
 
 .. note:: By default, we use ``train`` and ``test`` as splits to distinguish training and testing datasets from Huggingface.
    The ``JSON key`` options depends on the specific datasets. 
