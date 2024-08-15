@@ -81,7 +81,7 @@ You can specify it using the ``data_type@data_dir`` format. For example, the dat
 
 .. note:: By default, we use ``train`` and ``test`` as splits to distinguish training and testing datasets from Huggingface.
    The ``JSON key`` options depends on the specific datasets. 
-   See  `Reward Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/datasets/reward_dataset.py#L10>`_ and `SFT Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/ab89f6b857d22430190a5742924661134e40725c/openrlhf/datasets/sft_dataset.py#L9>`_
+   See  `Reward Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/datasets/reward_dataset.py#L10>`_ and `SFT Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/datasets/sft_dataset.py#L9>`_
 
 Pretrained Models
 -----------------
