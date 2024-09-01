@@ -19,7 +19,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
 
    # If you want to use vLLM acceleration (To install vLLM 0.4.2)
    pip install openrlhf[vllm]
-   # latest vLLM is also supported (using Gloo)
+   # latest vLLM is also supported (Please use `export NCCL_P2P_DISABLE=1` or `--vllm_sync_backend gloo`)
    pip install openrlhf[vllm_latest]
 
    # pip install the latest version
@@ -30,7 +30,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    cd OpenRLHF
    pip install -e .
 
-.. note:: We recommend using vLLM 0.4.2, as versions 0.4.3+ currently only support weight synchronization (DeepSpeed to vLLM) via Gloo (``--vllm_sync_backend gloo``). 
+.. note:: We recommend using vLLM 0.4.2, as the 0.4.3+ versions currently require disabling P2P communication (``export NCCL_P2P_DISABLE=1``) or synchronizing weights via Gloo (``--vllm_sync_backend gloo``). 
    We also provided the `Dockerfiles for vLLM <https://github.com/OpenRLHF/OpenRLHF/tree/main/dockerfile>`_  and  :ref:`nvidia-docker`.
 
 Prepare Datasets
