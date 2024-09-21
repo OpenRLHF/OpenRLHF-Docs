@@ -19,7 +19,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
 
    # If you want to use vLLM acceleration (To install vLLM 0.4.2)
    pip install openrlhf[vllm]
-   # latest vLLM is also supported (Please use `export NCCL_P2P_DISABLE=1` or `--vllm_sync_backend gloo`)
+   # latest vLLM is also supported (Please use `--vllm_sync_backend gloo` or `export NCCL_P2P_DISABLE=1`)
    pip install openrlhf[vllm_latest]
 
    # pip install the latest version
