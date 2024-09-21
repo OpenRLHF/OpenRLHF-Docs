@@ -4,14 +4,23 @@ Sequence Parallelism
 Ring Attention
 ------------
 
-Ring Attention with Blockwise Transformers (Ring Attention), which leverages blockwise computation of self-attention and feedforward to distribute long sequences across multiple devices while fully overlapping the communication of key-value blocks with the computation of blockwise attention. 
-More details are in `<https://arxiv.org/abs/2310.01889>`_ and `<https://github.com/zhuzilin/ring-flash-attention>`_
+OpenRLHF supports long-text model training based on RingAttention.
+Ring Attention with Blockwise Transformers (Ring Attention) leverages blockwise computation of self-attention and feedforward to distribute long sequences across multiple devices while fully overlapping the communication of key-value blocks with the computation of blockwise attention. 
+More details are in `<https://arxiv.org/abs/2310.01889>`_ and `<https://github.com/zhuzilin/ring-flash-attention>`_. 
 
 
 Examples
 ------------
 
-OpenRLHF supports long-text model training based on RingAttention.
+First, pip install ``ring_flash_attn``.
+
+.. code-block:: bash
+   
+   pip install ring_flash_attn
+   # or install from source
+   pip install git+https://github.com/zhuzilin/ring-flash-attention
+
+Then run the training scripts
 
 Related options:
 
