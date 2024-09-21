@@ -28,3 +28,4 @@ Contents
    multi-node
    remote_rm
    checkpoint
+   sequence_parallelism
