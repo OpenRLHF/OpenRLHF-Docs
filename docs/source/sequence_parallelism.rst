@@ -79,6 +79,7 @@ RM
    --rejected_key rejected \
    --ring_attn_size 2 \
    --ring_head_stride 2 \
+   --packing_samples \
    --flash_attn \
    --load_checkpoint \
    --gradient_checkpointing
