@@ -85,4 +85,4 @@ RM Training
       --gradient_checkpointing
 
 
-More algorithm support is under development.
+More algorithm (such as PPO) support is under development.

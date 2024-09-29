@@ -177,7 +177,7 @@ To improve RLHF training speed or support 70B models, we can use the ``PPO with 
       --use_wandb {wandb_token}
 
 
-.. note:: Do not set `--vllm_num_engines` means not using the vLLM engine. Ray + vLLM does not supports LoRA currently.
+.. note:: Do not set ``--vllm_num_engines`` means not using the vLLM engine. Ray + vLLM does not supports LoRA currently.
 You can also use ``setup_commands`` to let Ray automatically deploy the environment, such as ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'``
 
 Options
@@ -199,6 +199,7 @@ Ray and vLLM
 - ``--ref_reward_offload``: Offload Reward and Reference models to GPU
 - ``--vllm_sync_backend``: Set to ``nccl`` or ``gloo`` for vLLM weights sync
 - ``--enable_prefix_caching``: Enable `enable_prefix_caching <https://docs.vllm.ai/en/stable/automatic_prefix_caching/apc.html>`_ in vLLM generation
+- ``--packing_samples``: Packing PPO samples in training and forward
 
 PPO
 
