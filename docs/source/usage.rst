@@ -17,6 +17,7 @@ Training
 - ``--gradient_checkpointing``: Enable Gradient Checkpointing
 - ``--save_path``: Final HuggingFace model save path
 - ``--use_wandb``: Set to ``{wandb_token}`` or ``True`` with shell command ``wandb login``
+- ``--use_tensorboard``: Set to ``{tensorboard logs path}``
 - ``--learning_rate``: Learning Rate
 - ``--l2``: Weight Decay
 - ``--lr_scheduler``: Learning Rate Scheduler 
