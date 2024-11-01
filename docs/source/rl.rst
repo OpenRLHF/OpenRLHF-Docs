@@ -1,4 +1,4 @@
-Reinforcement Learning from Human Feedback(RLHF)
+Reinforcement Learning from Human Feedback (RLHF)
 =====
 
 Common Options
