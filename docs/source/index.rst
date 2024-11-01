@@ -23,7 +23,8 @@ Contents
 .. toctree::
 
    quick_start
-   usage
+   rl
+   non_rl
    performance
    multi-node
    remote_rm
