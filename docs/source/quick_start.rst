@@ -96,7 +96,7 @@ Then you can use the startup scripts we provide in the `examples <https://github
 
 .. code-block:: bash
 
-   deepspeed --module openrlhf.cli.train_sft \
+   deepspeed --module openrlhf.cli.train_ppo \
       --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
       --reward_pretrain OpenRLHF/Llama-3-8b-rm-mixture \
       --save_path ./checkpoint/llama-3-8b-rlhf \
