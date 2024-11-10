@@ -276,7 +276,7 @@ Datasets
 Reinforce with Ray (vLLM)
 ------------
 
-In Reinforce-like algorithms (such as GRPO), the Critic network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational power.
+In Reinforce-like algorithms (such as GRPO), the value network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational resources.
 
 .. code-block:: bash
    
