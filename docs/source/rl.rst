@@ -271,3 +271,64 @@ Datasets
 - ``--pretrain_data_probs``: Dataset mixing probabilities
 - ``--prompt_split``: HF datasets split for training (Prompts), default value is ``train``
 - ``--pretrain_split``: HF datasets split for training (Pretrain), default value is ``train`` 
+
+
+Reinforce with Ray (vLLM)
+------------
+
+In Reinforce-like algorithms (such as GRPO), the Critic network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational power.
+
+.. code-block:: bash
+   
+   # launch the master node of ray in container
+   ray start --head --node-ip-address 0.0.0.0 --num-gpus 8
+
+   # if you want to launch ray on more nodes, use
+   ray start --address {MASTER-NODE-ADDRESS}:6379  --num-gpus 8
+
+   ray job submit --address="http://127.0.0.1:8265" \
+      --runtime-env-json='{"working_dir": "/openrlhf"}' \
+      -- python3 -m openrlhf.cli.train_ppo_ray \
+      --ref_num_nodes 1 \
+      --ref_num_gpus_per_node 2 \
+      --reward_num_nodes 1 \
+      --reward_num_gpus_per_node 2 \
+      --critic_num_nodes 1 \
+      --critic_num_gpus_per_node 2 \
+      --actor_num_nodes 1 \
+      --actor_num_gpus_per_node 2 \
+      --vllm_num_engines 2 \
+      --vllm_tensor_parallel_size 2 \
+      --colocate_critic_reward \
+      --colocate_actor_ref \
+      --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
+      --reward_pretrain OpenRLHF/Llama-3-8b-rm-mixture \
+      --save_path /openrlhf/examples/checkpoint/llama3-8b-rlhf \
+      --micro_train_batch_size 8 \
+      --train_batch_size 128 \
+      --micro_rollout_batch_size 32 \
+      --rollout_batch_size 128 \
+      --n_samples_per_prompt 8 \
+      --max_samples 100000 \
+      --max_epochs 1 \
+      --prompt_max_len 1024 \
+      --generate_max_len 1024 \
+      --zero_stage 3 \
+      --bf16 \
+      --actor_learning_rate 5e-7 \
+      --critic_learning_rate 9e-6 \
+      --init_kl_coef 0.01 \
+      --advantage_estimator reinforce \
+      --prompt_data OpenRLHF/prompt-collection-v0.1 \
+      --input_key context_messages \
+      --apply_chat_template \
+      --packing_samples \
+      --normalize_reward \
+      --adam_offload \
+      --flash_attn \
+      --gradient_checkpointing \
+      --use_wandb {wandb_token}
+
+Options
+
+- ``--advantage_estimator`` set to ``gae`` (for PPO) or ``reinforce``
