@@ -33,7 +33,7 @@ Datasets
 - ``--dataset_probs``: Dataset mixing probabilities
 - ``--input_key``: Input JSON key for conversions
 - ``--apply_chat_template``: Use HuggingFace ``tokenizer.apply_chat_template``
-- ``--input_template``: Custom ``input_template`` (when not using ``tokenizer.apply_chat_template``), set to ``None`` to disable it. Such as ``'User: {}\nAssistant: '``.
+- ``--input_template``: Custom ``input_template`` (when not using ``tokenizer.apply_chat_template``), set to ``None`` to disable it. Such as ``$'User: {}\nAssistant: '``.
 - ``--max_len``: Max length for the samples
 - ``--max_samples``: Max training samples
 - ``--train_split``: HF datasets split for training, default value is ``train``
@@ -58,7 +58,7 @@ Supervised Fine-tuning
       --dataset Open-Orca/OpenOrca \
       --input_key question \
       --output_key response \
-      --input_template 'User: {}\nAssistant: ' \
+      --input_template $'User: {}\nAssistant: ' \
       --train_batch_size 256 \
       --micro_train_batch_size 8 \
       --max_samples 500000 \
