@@ -175,6 +175,7 @@ Then, we can specify ``remote_rm_urls`` during PPO training.
         --max_epochs 1 \
         --prompt_max_len 1024 \
         --generate_max_len 1024 \
+        --packing_samples \
         --zero_stage 3 \
         --bf16 \
         --actor_learning_rate 5e-7 \
