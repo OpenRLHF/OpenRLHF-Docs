@@ -221,6 +221,17 @@ To improve RLHF training speed or support 70B models, we can use the ``PPO with 
 .. note:: Do not set ``--vllm_num_engines`` means not using the vLLM engine. Ray + vLLM does not supports LoRA currently.
 You can also use ``setup_commands`` to let Ray automatically deploy the environment, such as ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'``
 
+
+.. note:: If you want to run on AMD GPUs, or for whatever reason you encounter an error related to index out of range when deepspeed sets up the GPU devices, you can try to set the environment variable ``RAY_EXPERIMENTAL_NOSET_*_VISIBLE_DEVICES``(openrlhf/trainer/ray/utils.py) as a workaround.
+.. code-block:: bash
+
+   ```bash
+   # For NVIDIA GPUs:
+   export RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=1
+   # For AMD GPUs:
+   export RAY_EXPERIMENTAL_NOSET_ROCR_VISIBLE_DEVICES=1
+   ```
+
 Options
 
 Ray and vLLM
