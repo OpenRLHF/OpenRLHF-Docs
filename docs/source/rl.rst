@@ -244,7 +244,7 @@ Ray and vLLM
 - ``--colocate_critic_reward``: Colocate Critic and Reward nodes. Ensure that the GPU configurations for Critic and Reward are identical
 - ``--colocate_actor_ref``: Colocate Actor and Reference Model nodes. Ensure that the GPU configurations for Actor and Ref are identical
 - ``--ref_reward_offload``: Offload Reward and Reference models to GPU
-- ``--vllm_sync_backend``: Set to ``nccl`` or ``gloo`` for vLLM weights sync
+- ``--vllm_sync_backend``: Set to ``nccl`` or ``gloo`` for vLLM weights sync. We recommend using vLLM 0.6.4+ (Only multi-nodes support NCCL weight synchronization) or vLLM 0.4.2 (``--vllm_sync_backend nccl``), as other versions currently require synchronizing weights via Gloo (``--vllm_sync_backend gloo``). 
 - ``--enable_prefix_caching``: Enable `enable_prefix_caching <https://docs.vllm.ai/en/stable/automatic_prefix_caching/apc.html>`_ in vLLM generation
 - ``--packing_samples``: Packing PPO samples in training and forward
 
