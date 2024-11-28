@@ -1,89 +1,6 @@
 Multi-node Training
 =====
 
-How to specify a particular node for a model in Ray PPO?
-------------
-
-In Ray, you can control task scheduling by specifying the node's IP address. Ray allows you to specify resource constraints when submitting tasks, and you can use custom resource labels to help the scheduler select the appropriate node. Here is a basic example demonstrating how to use Ray's resource labels and IP addresses to specify nodes:
-
-Start Ray on the nodes:
-
-When starting Ray on each node, you can specify custom resource labels. For example:
-
-On machine A (with V100):
-
-.. code-block:: bash
-
-    ray start --node-ip-address=<IP of machine A> --resources '{"v100": 1}'
-    
-On machine B (with H100):
-
-.. code-block:: bash
-
-    ray start --node-ip-address=<IP of machine B> --resources '{"h100": 1}'
-
-Specify resource requirements in your script:
-
-When submitting tasks, you can specify the resources required for the task. For example:
-
-.. code-block:: python
-
-    import ray
-    from ray.util.placement_group import placement_group
-
-    ray.init(address='auto')
-
-    # Create Placement Groups
-    pg = placement_group([{"v100": 1, "h100": 1}])
-    ray.get([pg.ready()])
-
-    @ray.remote
-    def reference_or_reward_model():
-        # Task suitable for small GPU memory
-        pass
-
-    @ray.remote
-    def actor_or_critic_model():
-        # Task suitable for large GPU memory
-        pass
-
-    # Launch Tasks
-    result1 = reference_or_reward_model.options(placement_group=pg, resources={"v100": 1}).remote()
-    result2 = actor_or_critic_model.options(placement_group=pg, resources={"h100": 1}).remote()
-    
-In this example, task1 will be scheduled on a node with the small GPU memory resource (i.e., machine A), and task2 will be scheduled on a node with the large GPU memory resource (i.e., machine B).
-
-Based on this, you can modify the ``Ray resources``-related code in `train_ppo_ray.py <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/train_ppo_ray.py>`_.
-For example, we want to deploy the ``Reference Model`` on a ``V100 x8`` node (other models on ``A100 x8``):
-
-.. code-block:: python
-
-    ray start --node-ip-address=<IP of machine A> --resources '{"v100": 8}'
-
-    # Modify 
-    ref_model = PPORayActorGroup(
-            args.ref_num_nodes,
-            args.ref_num_gpus_per_node,
-            ReferenceModelRayActor,
-            pg=pg,
-            num_gpus_per_actor=0.25 if pg else 1,
-        )
-
-    # To
-    # Do not use --colocate_actor_ref for the models
-    ref_model = PPORayActorGroup(
-            args.ref_num_nodes,
-            args.ref_num_gpus_per_node,
-            ReferenceModelRayActor,
-            pg=pg,
-            num_gpus_per_actor=1,
-            resources={"v100": 1}
-            num_resources_per_node=8,
-        )
-
-.. note:: `Ray resources docs <https://docs.ray.io/en/latest/ray-core/scheduling/resources.html>`_
-
-
 How to launch Ray PPO on Slurm?
 ------------
 
@@ -253,3 +170,86 @@ Here is an example for DPO
         --master_addr $MASTER_ADDR --master_port $MASTER_PORT -m ${training_commands}" &>> ${JOBLOG}
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') Job ${SLURM_JOB_ID} stopped ..." &>> ${JOBLOG}
+
+
+How to specify a particular node for a model in Ray PPO?
+------------
+
+In Ray, you can control task scheduling by specifying the node's IP address. Ray allows you to specify resource constraints when submitting tasks, and you can use custom resource labels to help the scheduler select the appropriate node. Here is a basic example demonstrating how to use Ray's resource labels and IP addresses to specify nodes:
+
+Start Ray on the nodes:
+
+When starting Ray on each node, you can specify custom resource labels. For example:
+
+On machine A (with V100):
+
+.. code-block:: bash
+
+    ray start --node-ip-address=<IP of machine A> --resources '{"v100": 1}'
+    
+On machine B (with H100):
+
+.. code-block:: bash
+
+    ray start --node-ip-address=<IP of machine B> --resources '{"h100": 1}'
+
+Specify resource requirements in your script:
+
+When submitting tasks, you can specify the resources required for the task. For example:
+
+.. code-block:: python
+
+    import ray
+    from ray.util.placement_group import placement_group
+
+    ray.init(address='auto')
+
+    # Create Placement Groups
+    pg = placement_group([{"v100": 1, "h100": 1}])
+    ray.get([pg.ready()])
+
+    @ray.remote
+    def reference_or_reward_model():
+        # Task suitable for small GPU memory
+        pass
+
+    @ray.remote
+    def actor_or_critic_model():
+        # Task suitable for large GPU memory
+        pass
+
+    # Launch Tasks
+    result1 = reference_or_reward_model.options(placement_group=pg, resources={"v100": 1}).remote()
+    result2 = actor_or_critic_model.options(placement_group=pg, resources={"h100": 1}).remote()
+    
+In this example, task1 will be scheduled on a node with the small GPU memory resource (i.e., machine A), and task2 will be scheduled on a node with the large GPU memory resource (i.e., machine B).
+
+Based on this, you can modify the ``Ray resources``-related code in `train_ppo_ray.py <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/train_ppo_ray.py>`_.
+For example, we want to deploy the ``Reference Model`` on a ``V100 x8`` node (other models on ``A100 x8``):
+
+.. code-block:: python
+
+    ray start --node-ip-address=<IP of machine A> --resources '{"v100": 8}'
+
+    # Modify 
+    ref_model = PPORayActorGroup(
+            args.ref_num_nodes,
+            args.ref_num_gpus_per_node,
+            ReferenceModelRayActor,
+            pg=pg,
+            num_gpus_per_actor=0.25 if pg else 1,
+        )
+
+    # To
+    # Do not use --colocate_actor_ref for the models
+    ref_model = PPORayActorGroup(
+            args.ref_num_nodes,
+            args.ref_num_gpus_per_node,
+            ReferenceModelRayActor,
+            pg=pg,
+            num_gpus_per_actor=1,
+            resources={"v100": 1}
+            num_resources_per_node=8,
+        )
+
+.. note:: `Ray resources docs <https://docs.ray.io/en/latest/ray-core/scheduling/resources.html>`_
