@@ -10,7 +10,7 @@ To achieve optimal performance, we recommend allocating more nodes to the vLLM E
 - Enable the ``--colocate_critic_reward``, ``--colocate_actor_ref`` options to merge nodes.  
 - You should increase the ``rollout_micro_batch_size`` (and minimize the TP size of vLLM engine) as much as possible. During the training phase, a larger ``--micro_train_batch_size`` is better and enable ``--packing_samples``.
 - When there are enough GPUs, please disable ``--adam_offload``.
-- For multi-nodes RLHF, please use `--vllm_sync_backend nccl` with vLLM 0.6.4+..
+- For multi-nodes RLHF, please use ``--vllm_sync_backend nccl`` with vLLM 0.6.4+..
 
 SFT/RM/DPO/PPO training
 ------------------
