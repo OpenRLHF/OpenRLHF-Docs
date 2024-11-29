@@ -98,6 +98,8 @@ Here is an example
         --input_key context_messages \
         --apply_chat_template \
         --normalize_reward \
+        --vllm_sync_backend nccl \
+        --packing_samples \
         --adam_offload \
         --flash_attn \
         --gradient_checkpointing \
@@ -151,6 +153,7 @@ Here is an example for DPO
         --apply_chat_template \
         --chosen_key chosen \
         --rejected_key rejected \
+        --packing_samples \
         --flash_attn \
         --gradient_checkpointing \
         --use_wandb {wandb_token}"
