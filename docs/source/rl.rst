@@ -123,7 +123,7 @@ Options
 - ``--value_head_prefix``: custom ``value_head`` (score head) prefix
 - ``--packing_samples``: Packing RM samples
 
-It is recommended to set ``value_head_prefix`` to ``score``, allowing the reward model to be seamlessly loaded using ``AutoModelForSequenceClassification``:
+It is recommended to set ``--value_head_prefix`` to ``score``, allowing the reward model to be seamlessly loaded using ``AutoModelForSequenceClassification``:
 
 .. code-block:: python
 
