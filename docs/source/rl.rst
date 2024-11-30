@@ -123,6 +123,18 @@ Options
 - ``--value_head_prefix``: custom ``value_head`` (score head) prefix
 - ``--packing_samples``: Packing RM samples
 
+It is recommended to set ``value_head_prefix`` to ``score``, allowing the reward model to be seamlessly loaded using ``AutoModelForSequenceClassification``:
+
+.. code-block:: python
+
+   AutoModelForSequenceClassification.from_pretrained(
+               reward_model_path,
+               num_labels=1,
+               torch_dtype=torch.bfloat16,
+               attn_implementation="flash_attention_2",
+               use_cache=False,
+         )
+
 
 Process Reward Model (PRM) Training
 ---------------------
