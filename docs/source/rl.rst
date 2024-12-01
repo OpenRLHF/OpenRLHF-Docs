@@ -123,6 +123,22 @@ Options
 - ``--value_head_prefix``: custom ``value_head`` (score head) prefix
 - ``--packing_samples``: Packing RM samples
 
+It is recommended to set the ``--value_prefix_head`` option of the Reward Model to ``score``, so that we can load the model using ``AutoModelForSequenceClassification``:
+
+.. code-block:: python
+
+   reward_model = AutoModelForSequenceClassification.from_pretrained(
+               reward_model_path,
+               num_labels=1,
+               torch_dtype=torch.bfloat16,
+               attn_implementation="flash_attention_2",
+               use_cache=False,
+            )
+   inputs = xxxx (Left Padding Input Tokens)
+   reward = reward_model.model(*inputs)
+   reward = reward_model.score(reward)[:, -1]
+
+
 Process Reward Model (PRM) Training
 ---------------------
 
@@ -158,21 +174,6 @@ Options
 - ``--label_key`` JSON dataset key for reward label
 - ``--placeholder_token`` step placeholder token
 - ``--reward_tokens`` reward label
-
-It is recommended to set the ``--value_prefix_head`` option of the Reward Model to ``score``, so that we can load the model using ``AutoModelForSequenceClassification``:
-
-.. code-block:: python
-
-   reward_model = AutoModelForSequenceClassification.from_pretrained(
-               reward_model_path,
-               num_labels=1,
-               torch_dtype=torch.bfloat16,
-               attn_implementation="flash_attention_2",
-               use_cache=False,
-            )
-   inputs = xxxx (Left Padding Input Tokens)
-   reward = reward_model.model(*inputs)
-   reward = reward_model.score(reward)[:, -1]
 
 
 .. _rayppo:
