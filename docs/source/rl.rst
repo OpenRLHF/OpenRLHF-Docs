@@ -170,9 +170,9 @@ It is recommended to set the ``--value_prefix_head`` option of the Reward Model 
                attn_implementation="flash_attention_2",
                use_cache=False,
             )
-   reward_model.config.pad_token_id = None
    inputs = xxxx (Left Padding Input Tokens)
-   reward = reward_model(*inputs)
+   reward = reward_model.model(*inputs)
+   reward = reward_model.score(reward)[:, -1]
 
 
 .. _rayppo:
