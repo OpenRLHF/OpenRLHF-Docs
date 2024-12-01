@@ -172,7 +172,7 @@ It is recommended to set the ``--value_prefix_head`` option of the Reward Model 
             )
    reward_model.config.pad_token_id = None
    inputs = xxxx (Left Padding Input Tokens)
-   reward = reward_model.model(*inputs)
+   reward = reward_model(*inputs)
 
 
 .. _rayppo:
