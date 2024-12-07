@@ -294,7 +294,7 @@ Datasets
 - ``--pretrain_split``: HF datasets split for training (Pretrain), default value is ``train`` 
 
 
-REINFORCE with Ray (vLLM)
+REINFORCE/RLOO with Ray (vLLM)
 ------------
 
 In REINFORCE-like algorithms, the value network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational resources.
@@ -348,4 +348,4 @@ In REINFORCE-like algorithms, the value network is not used; instead, advantage 
 
 Options
 
-- ``--advantage_estimator`` set to ``gae`` (for PPO) or ``reinforce``
+- ``--advantage_estimator`` set to ``gae`` (for PPO) or ``reinforce`` or ``rloo``
