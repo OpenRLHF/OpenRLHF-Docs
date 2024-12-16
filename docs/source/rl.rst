@@ -26,6 +26,7 @@ Training
 - ``--train_batch_size``: Global training batch size
 - ``--aux_loss_coef``: Balancing loss coefficient for MoE
 - ``--max_epoch``: Training epochs
+- ``--lr_warmup_ratio``: Warmup ratio of the learning rate
 
 Datasets
 
