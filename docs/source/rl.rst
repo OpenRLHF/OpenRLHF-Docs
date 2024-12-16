@@ -270,7 +270,8 @@ PPO
 - ``--normalize_reward``: Enable Reward Normalization
 - ``--value_head_prefix``: custom ``value_head``  (score head) prefix for the reward model
 - ``--init_kl_coef``: KL penalty coeff
-- ``--max_epochs``: Number of PPO training epochs
+- ``--max_epochs``: Number of PPO training epochs in a global step
+- ``--num_episodes``: Number of PPO episodes (the number of data passes)
 - ``--micro_train_batch_size``: Batch size per GPU for training
 - ``--train_batch_size``: PPO mini-batch size
 - ``--micro_rollout_batch_size``: Batch size per GPU for generation
