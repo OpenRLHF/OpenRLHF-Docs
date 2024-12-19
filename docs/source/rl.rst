@@ -12,7 +12,7 @@ Training
 - ``--zero_stage``: DeepSpeed ZeRO Stage
 - ``--adam_offload``: Offload the Adam Optimizer to GPU
 - ``--adam_betas``: Adam betas, default value is (0.9, 0.95)
-- ``--overlap_comm``: Enable backward & gradient overlap_comm for Deepspeed
+- ``--overlap_comm``: Enable backward & gradient overlap_comm for Deepspeed (overlap_comm uses 4.5x the allgather_bucket_size and reduce_bucket_size values.)
 - ``--bf16``: Enable bfloat16
 - ``--flash_attn``: Enable Flash Attention 2
 - ``--gradient_checkpointing``: Enable Gradient Checkpointing
