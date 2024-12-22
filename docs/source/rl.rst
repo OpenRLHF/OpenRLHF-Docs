@@ -137,7 +137,7 @@ It is recommended to set the ``--value_prefix_head`` option of the Reward Model 
                use_cache=False,
             )
    inputs = xxxx (Left Padding Input Tokens)
-   reward = reward_model.model(*inputs)
+   reward = reward_model.model(*inputs).last_hidden_state
    reward = reward_model.score(reward)[:, -1]
 
 
