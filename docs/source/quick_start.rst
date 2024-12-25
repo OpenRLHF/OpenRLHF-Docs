@@ -43,11 +43,14 @@ Such as in the `Prompt Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/o
 
    def preprocess_data(data, input_template=None, input_key="input", apply_chat_template=None) -> str:
       if apply_chat_template:
-         prompt = apply_chat_template(data[input_key], tokenize=False, add_generation_prompt=True)
+         chat = data[input_key]
+         if isinstance(chat, str):
+               chat = [{"role": "user", "content": chat}]
+         prompt = apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
       else:
          prompt = data[input_key]
          if input_template:
-            prompt = input_template.format(prompt)
+               prompt = input_template.format(prompt)
       return prompt
 
 - We can use ``--input_key`` to specify the ``JSON key name`` of the input datasets ``--prompt_data {name or path}`` (PPO) or ``--dataset {name or path}``, and use ``--apply_chat_template`` to utilize the ``chat_template`` from the `Huggingface Tokenizer <https://huggingface.co/docs/transformers/main/en/chat_templating>`_.
