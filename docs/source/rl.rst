@@ -297,10 +297,11 @@ Datasets
 - ``--pretrain_split``: HF datasets split for training (Pretrain), default value is ``train`` 
 
 
-REINFORCE/RLOO with Ray (vLLM)
+`REINFORCE++ <https://hijkzzz.notion.site/reinforce-plus-plus>`_/RLOO with Ray (vLLM)
 ------------
 
 In REINFORCE-like algorithms, the value network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational resources.
+We also proposed the `REINFORCE++ <https://hijkzzz.notion.site/reinforce-plus-plus>`_ alignment method.
 
 .. code-block:: bash
    
