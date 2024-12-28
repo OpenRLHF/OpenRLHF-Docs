@@ -128,7 +128,7 @@ Then you can use the startup scripts we provide in the `examples <https://github
       --gradient_checkpointing \
       --use_wandb {wandb_token}
 
-- For the PPO / `REINFORCE++ <https://github.com/hijkzzz/Awesome-LLM-Strawberry/blob/main/resources/REINFORCE%2B%2B.pdf>`_ with Ray and vLLM, please refer to :ref:`rayppo`.
+- For the PPO / `REINFORCE++ <https://www.researchgate.net/publication/387487679_REINFORCE_A_SIMPLE_AND_EFFICIENT_APPROACH_FOR_ALIGNING_LARGE_LANGUAGE_MODELS>`_ with Ray and vLLM, please refer to :ref:`rayppo`.
 - OpenRLHF provides usage scripts and docs for the supported algorithms in `examples/scripts <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples/scripts>`_ and :doc:`usage`.
 
 .. _nvidia-docker:
