@@ -348,7 +348,6 @@ We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/3874
       --zero_stage 3 \
       --bf16 \
       --actor_learning_rate 5e-7 \
-      --critic_learning_rate 9e-6 \
       --init_kl_coef 0.01 \
       --advantage_estimator reinforce \
       --prompt_data OpenRLHF/prompt-collection-v0.1 \
