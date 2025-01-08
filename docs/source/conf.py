@@ -3,7 +3,7 @@
 # -- Project information
 
 project = 'OpenRLHF'
-copyright = '2024, OpenRLHF'
+copyright = '2025, OpenRLHF'
 author = 'OpenRLHF'
 
 release = '0.5'
