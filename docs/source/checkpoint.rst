@@ -14,6 +14,8 @@ Related options:
 - ``--save_steps``: Number of ``global training steps`` between saving checkpoints. For PPO, it refers to the number of model updates (excluding mini-batches).
 - ``--ckpt_path``: Directory path where checkpoints will be saved.
 - ``--load_checkpoint``: Load checkpoint for resuming training (Skip if the checkpoint does not exist).
+- ``--save_hf_ckpt``: Save huggingfae models for each checkpoint.
+- ``--disable_ds_ckpt``: Do not save DeepSpeed checkpoints to save disk space, but this will prevent the training progress from being recoverable.
 - ``--max_ckpt_num``: Maximum number of latest checkpoints to keep.
 - ``--max_ckpt_mem``: Maximum memory size (GB) allocated for storing checkpoints.
 
@@ -43,6 +45,7 @@ SFT
       --gradient_checkpointing \
       --save_steps 200 \
       --ckpt_path ./ckpt \
+      --save_hf_ckpt \
       --load_checkpoint \
       --use_wandb {wandb_token}
       
@@ -92,5 +95,6 @@ Ray PPO with vLLM
       --gradient_checkpointing \
       --save_steps 20 \
       --ckpt_path /openrlhf/examples/checkpoint/ckpt/ \
+      --save_hf_ckpt \
       --load_checkpoint \
       --use_wandb {wandb_token}
