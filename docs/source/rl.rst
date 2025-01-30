@@ -96,7 +96,7 @@ Options
 - ``--tokenizer_chat_template``: Custom ``chat_template`` for HuggingFace tokenizer template
 - ``--pretrain_mode``: Continue pretrain mode
 - ``--packing_samples``: Packing SFT samples
-- ``--multi_turn``: Enable multi turn fine-tuning loss
+- ``--multiturn``: Enable multi turn fine-tuning loss
 
 .. note:: OpenRLHF SFT/DPO/RM trainers support ``--packing_samples`` `using --flash_attn <https://github.com/MeetKai/functionary/tree/main/functionary/train/packing>`_
 
