@@ -1,4 +1,4 @@
-Remote Reward Model
+Remote Reward Server & Reinforced Fine-tuning
 =====
 
 How to specify the reward model on a remote server?
