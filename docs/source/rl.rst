@@ -273,7 +273,8 @@ Ray and vLLM
 - ``--colocate_critic_reward``: Colocate Critic and Reward nodes. Ensure that the GPU configurations for Critic and Reward are identical
 - ``--colocate_actor_ref``: Colocate Actor and Reference Model nodes. Ensure that the GPU configurations for Actor and Ref are identical
 - ``--ref_reward_offload``: Offload Reward and Reference models to GPU
-- ``--vllm_sync_backend``: Set to ``nccl`` or ``gloo`` for vLLM weights sync. We recommend using vLLM 0.6.4+ (Only multi-nodes support NCCL weight synchronization) or vLLM 0.4.2 (``--vllm_sync_backend nccl``), as other versions currently require synchronizing weights via Gloo (``--vllm_sync_backend gloo``). 
+- ``--vllm_sync_backend``: Set to ``nccl`` or ``gloo`` for vLLM weights sync. We recommend using vLLM 0.6.4+, as other versions currently require synchronizing weights via Gloo (``--vllm_sync_backend gloo``). 
+- ``--vllm_sync_with_ray``: Use ``ray.collective`` to synchronize vLLM weights and avoid NCCL hang.
 - ``--enable_prefix_caching``: Enable `enable_prefix_caching <https://docs.vllm.ai/en/stable/automatic_prefix_caching/apc.html>`_ in vLLM generation
 - ``--packing_samples``: Packing PPO samples in training and forward
 
@@ -288,7 +289,7 @@ PPO
 - ``--micro_train_batch_size``: Batch size per GPU for training
 - ``--train_batch_size``: PPO mini-batch size
 - ``--micro_rollout_batch_size``: Batch size per GPU for generation
-- ``--rollout_batch_size``: Replay Buffer Size
+- ``--rollout_batch_size``: Replay Buffer Size ``= rollout_batch_size * n_samples_per_prompt``
 - ``--prompt_max_len``: Max length for the prompts
 - ``--generate_max_len``: Max length for the responses
 - ``--n_samples_per_prompt``: Generate n samples for each promot
