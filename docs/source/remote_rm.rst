@@ -191,3 +191,30 @@ Then, we can specify ``remote_rm_urls`` during PPO training.
         --use_wandb {wandb_token}
 
 .. note:: We can use ``--critic_pretrain`` to specify the critic model. Otherwise the critic model is initialized using the actor model specified by ``--pretrain``.
+
+
+Reinforced Fine-tuning
+------------
+
+OpenRLHF supports convenient and efficient Reinforced Fine-tuning. You only need to implement a `file containing the custom reward_fun function <https://github.com/OpenRLHF/OpenRLHF/blob/custom_reward_func/examples/scripts/reward_func.py>`_ and pass its path to the ``remote_rm_url`` parameter. Such as
+
+.. code-block:: python
+
+    # reward_func.py
+    import torch
+
+    def reward_func(queries, prompts):
+        # queries is prompts + responses
+        print(queries)
+        return torch.randn(len(queries))
+
+
+then just set
+
+.. code-block:: shell
+    
+    ray job submit --address="http://127.0.0.1:8265" \
+    --runtime-env-json='{"working_dir": "/openrlhf"}' \
+    -- python3 -m openrlhf.cli.train_ppo_ray \
+    ...
+    --remote_rm_url /path/to/reward_func.py
