@@ -274,7 +274,7 @@ Ray and vLLM
 - ``--colocate_actor_ref``: Colocate Actor and Reference Model nodes. Ensure that the GPU configurations for Actor and Ref are identical
 - ``--ref_reward_offload``: Offload Reward and Reference models to GPU
 - ``--vllm_sync_backend``: Set to ``nccl`` or ``gloo`` for vLLM weights sync. We recommend using vLLM 0.6.4+, as other versions currently require synchronizing weights via Gloo (``--vllm_sync_backend gloo``). 
-- ``--vllm_sync_with_ray``: Use ``ray.collective`` to synchronize vLLM weights and avoid NCCL hang.
+- ``--vllm_sync_with_ray``: Use `ray.util.collective <https://docs.ray.io/en/latest/ray-more-libs/ray-collective.html>`_ to synchronize vLLM weights and avoid NCCL hang.
 - ``--enable_prefix_caching``: Enable `enable_prefix_caching <https://docs.vllm.ai/en/stable/automatic_prefix_caching/apc.html>`_ in vLLM generation
 - ``--packing_samples``: Packing PPO samples in training and forward
 
