@@ -30,7 +30,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    cd OpenRLHF
    pip install -e .
 
-.. note:: We recommend using vLLM 0.6.4+, as other versions (vLLM >= 0.4.2) may require synchronizing weights via Gloo (``--vllm_sync_backend gloo``). 
+.. note:: We recommend using vLLM 0.7.2+. 
    We also provided the `Dockerfiles for vLLM <https://github.com/OpenRLHF/OpenRLHF/tree/main/dockerfile>`_  and  :ref:`nvidia-docker`.
 
 Prepare Datasets
