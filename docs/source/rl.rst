@@ -303,6 +303,8 @@ PPO
 - ``--critic_learning_rate``: Critic model learning rate
 - ``--reward_clip_range``: Reward value cliprange, such as ``(-10, 10)``
 - ``--temperature``: PPO samling temperature for LLMs
+- ``--gamma``: ``gamma`` for GAE
+- ``--lambd``: ``lambda`` for GAE
 
 Datasets
 
