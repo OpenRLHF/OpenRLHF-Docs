@@ -12,7 +12,7 @@ To achieve optimal performance, we recommend allocating nodes `vLLM:Actor:Critic
 - When there are enough GPUs, please disable ``--adam_offload`` and enable ``--overlap_comm``.
 - For multi-nodes RLHF, please use ``--vllm_sync_backend nccl`` with vLLM 0.7.2+.
 - Enable `enable_prefix_caching <https://docs.vllm.ai/en/stable/automatic_prefix_caching/apc.html>`_ in vLLM generation when ``n_samples_per_prompts`` > 1.
-- Using hybrid engine ``--colocate_all_models`` and ``--vllm_enable_sleep``rather than distributed RLHF when the model size is small.
+- Using hybrid engine ``--colocate_all_models`` and ``--vllm_enable_sleep``rather than distributed RLHF when the model size and context length are small values.
 
 SFT/RM/DPO/PPO training
 ------------------
