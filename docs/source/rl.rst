@@ -370,4 +370,8 @@ We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/3874
 
 Options
 
-- ``--advantage_estimator`` set to ``gae`` (for PPO) or ``reinforce`` or ``rloo``
+- ``--advantage_estimator`` set to ``gae`` (for PPO) or ``reinforce`` or ``rloo`` or ``reinforce_baseline``
+
+
+REINFORCE++ integrates key optimization techniques from PPO while eliminating the need for a critic network.
+REINFORCE++-baseline uses the mean reward of multiple samples from the same prompt as the baseline.

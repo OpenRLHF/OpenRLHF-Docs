@@ -7,7 +7,7 @@ copyright = '2025, OpenRLHF'
 author = 'OpenRLHF'
 
 release = '0.5'
-version = '0.5.8'
+version = '0.5.9'
 
 # -- General configuration
 
