@@ -304,7 +304,7 @@ PPO
 - ``--reward_clip_range``: Reward value cliprange, such as ``(-10, 10)``
 - ``--temperature``: PPO samling temperature for LLMs
 - ``--gamma``: ``gamma`` for RL, default value is ``1.0``
-- ``--lambd``: ``lambda`` for GAE, default value is ``1.0``
+- ``--lambd``: ``lambda`` for GAE, default value is ``0.95``
 
 Datasets
 
