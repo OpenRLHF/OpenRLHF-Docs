@@ -11,7 +11,7 @@ Training
 
 - ``--zero_stage``: DeepSpeed ZeRO Stage
 - ``--adam_offload``: Offload the Adam Optimizer to GPU
-- ``--adam_betas``: Adam betas, default value is (0.9, 0.95)
+- ``--adam_betas``: Adam betas, default value is ``(0.9, 0.95)``
 - ``--overlap_comm``: Enable backward & gradient overlap_comm for Deepspeed (overlap_comm uses 4.5x the allgather_bucket_size and reduce_bucket_size values.)
 - ``--bf16``: Enable bfloat16
 - ``--flash_attn``: Enable Flash Attention 2
@@ -223,7 +223,7 @@ To improve RLHF training speed or support 70B models, we can use the ``PPO with 
       --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
       --reward_pretrain OpenRLHF/Llama-3-8b-rm-mixture \
       --save_path /openrlhf/examples/checkpoint/llama3-8b-rlhf \
-      --micro_train_batch_size 8 \
+      --micro_train_batch_size 16 \
       --train_batch_size 128 \
       --micro_rollout_batch_size 32 \
       --rollout_batch_size 1024 \
