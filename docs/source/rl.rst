@@ -322,6 +322,10 @@ REINFORCE++ /RLOO with Ray (vLLM)
 In REINFORCE-like algorithms, the value network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational resources.
 We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/387487679_REINFORCE_A_SIMPLE_AND_EFFICIENT_APPROACH_FOR_ALIGNING_LARGE_LANGUAGE_MODELS>`_ alignment method.
 
+- REINFORCE++ integrates ``key optimization techniques from PPO`` while eliminating the need for a critic network.
+- REINFORCE++-baseline uses the ``mean reward of multiple samples from the same prompt`` as the baseline.
+- RLOO in OpenRLHF modifies the original version by incorporating the per-token KL reward and utilizing the PPO-clip loss
+
 .. code-block:: bash
    
    # launch the master node of ray in container
@@ -371,8 +375,3 @@ We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/3874
 Options
 
 - ``--advantage_estimator`` set to ``gae`` (for PPO), ``reinforce``, ``rloo`` or ``reinforce_baseline``
-
-
-REINFORCE++ integrates ``key optimization techniques from PPO`` while eliminating the need for a critic network.
-
-REINFORCE++-baseline uses the ``mean reward of multiple samples from the same prompt`` as the baseline.
