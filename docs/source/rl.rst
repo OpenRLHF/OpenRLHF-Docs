@@ -276,7 +276,7 @@ Ray and vLLM
 - ``--vllm_gpu_memory_utilization``: vLLM gpu_memory_utilization
 - ``--vllm_enable_sleep``: Enable sleep mode for vLLM when using --colocate_all_models
 - ``--enforce_eager``: Disable cuda graph for vLLM
-- ``--ref_reward_offload``: Offload Reward and Reference models to GPU
+- ``--ref_reward_offload``: Offload Reward and Reference models to CPU when enabling Hybrid Engine 
 - ``--vllm_sync_backend``: Set to ``nccl`` or ``gloo`` for vLLM weights sync. We recommend using vLLM 0.6.4+, as other versions currently require synchronizing weights via Gloo (``--vllm_sync_backend gloo``). 
 - ``--vllm_sync_with_ray``: Use `ray.util.collective <https://docs.ray.io/en/latest/ray-more-libs/ray-collective.html>`_ to synchronize vLLM weights and avoid NCCL hang.
 - ``--enable_prefix_caching``: Enable `enable_prefix_caching <https://docs.vllm.ai/en/stable/automatic_prefix_caching/apc.html>`_ in vLLM generation
