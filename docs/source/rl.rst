@@ -325,6 +325,7 @@ We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/3874
 - REINFORCE++ integrates ``key optimization techniques from PPO`` while eliminating the need for a critic network.
 - REINFORCE++-baseline uses the ``mean reward of multiple samples from the same prompt`` as the baseline.
 - RLOO in OpenRLHF modifies the original version by incorporating the per-token KL reward and utilizing the PPO-clip loss
+- GRPO can be enabled by setting ``--advantage_estimator group_norm`` and using KL loss
 
 .. code-block:: bash
    
@@ -374,4 +375,6 @@ We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/3874
 
 Options
 
-- ``--advantage_estimator`` set to ``gae`` (for PPO), ``reinforce``, ``rloo`` or ``reinforce_baseline``
+- ``--advantage_estimator`` set to ``gae`` (for PPO), ``reinforce``, ``rloo``, ``reinforce_baseline`` or ``group_norm`` (for GRPO)
+- ``--use_kl_loss`` Enable KL loss (required for GRPO)
+
