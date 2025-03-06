@@ -272,9 +272,6 @@ Ray and vLLM
 - ``--vllm_tensor_parallel_size``: Tensor Parallel Size for vLLM engines
 - ``--colocate_critic_reward``: Colocate Critic and Reward nodes. Ensure that the GPU configurations for Critic and Reward are identical
 - ``--colocate_actor_ref``: Colocate Actor and Reference Model nodes. Ensure that the GPU configurations for Actor and Ref are identical
-- ``--colocate_all_models``: Colocate vLLM Engines, Actor, Reference, Reward and Critic Model nodes (Hybrid Engine)
-- ``--vllm_gpu_memory_utilization``: vLLM gpu_memory_utilization
-- ``--vllm_enable_sleep``: Enable sleep mode for vLLM when using --colocate_all_models
 - ``--enforce_eager``: Disable cuda graph for vLLM
 - ``--ref_reward_offload``: Offload Reward and Reference models to CPU when enabling Hybrid Engine 
 - ``--vllm_sync_backend``: Set to ``nccl`` or ``gloo`` for vLLM weights sync. We recommend using vLLM 0.6.4+, as other versions currently require synchronizing weights via Gloo (``--vllm_sync_backend gloo``). 
