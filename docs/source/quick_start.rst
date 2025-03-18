@@ -92,43 +92,62 @@ Pretrained Models
 OpenRLHF's model checkpoint is fully compatible with HuggingFace models. You can specify the model name or path using ``--pretrain``, ``--reward_pretrain`` and ``--critic_pretrain``.
 We have provided some pre-trained checkpoints and datasets on `HuggingFace OpenRLHF <https://huggingface.co/OpenRLHF>`_.
 
-PPO without Ray
+RLHF with Ray and vLLM
 ----------------
-Then you can use the startup scripts we provide in the `examples <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples>`_ directory, or start the training using the following command:
+Then you can use the startup scripts we provide in the `examples <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples>`_ directory, or start the training using the following command using Hybrid Engine:
 
 
 .. code-block:: bash
 
-   deepspeed --module openrlhf.cli.train_ppo \
+   # launch the master node of ray in container
+   ray start --head --node-ip-address 0.0.0.0 --num-gpus 8
+
+   ray job submit --address="http://127.0.0.1:8265" \
+      --runtime-env-json='{"working_dir": "/openrlhf"}' \
+      -- python3 -m openrlhf.cli.train_ppo_ray \
+      --ref_num_nodes 1 \
+      --ref_num_gpus_per_node 8 \
+      --reward_num_nodes 1 \
+      --reward_num_gpus_per_node 8 \
+      --actor_num_nodes 1 \
+      --actor_num_gpus_per_node 8 \
+      --vllm_num_engines 8 \
+      --vllm_tensor_parallel_size 1 \
+      --colocate_all_models \
+      --vllm_gpu_memory_utilization 0.6 \
+      --advantage_estimator reinforce \
       --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
-      --reward_pretrain OpenRLHF/Llama-3-8b-rm-mixture \
-      --save_path ./checkpoint/llama-3-8b-rlhf \
-      --save_steps -1 \
-      --logging_steps 1 \
-      --eval_steps -1 \
-      --micro_train_batch_size 2 \
+      --reward_pretrain OpenRLHF/Llama-3-8b-rm-700k \
+      --save_path /openrlhf/examples/test_scripts/final/llama3-8b-rlhf \
+      --ckpt_path /openrlhf/examples/test_scripts/ckpt/llama3-8b-rlhf \
+      --save_hf_ckpt \
+      --micro_train_batch_size 4 \
       --train_batch_size 128 \
-      --micro_rollout_batch_size 4 \
+      --micro_rollout_batch_size 8 \
       --rollout_batch_size 1024 \
+      --n_samples_per_prompt 1 \
       --max_epochs 1 \
       --prompt_max_len 1024 \
+      --max_samples 100000 \
       --generate_max_len 1024 \
-      --zero_stage 2 \
+      --zero_stage 3 \
       --bf16 \
       --actor_learning_rate 5e-7 \
       --critic_learning_rate 9e-6 \
-      --init_kl_coef 0.01 \
+      --init_kl_coef 1e-4 \
       --prompt_data OpenRLHF/prompt-collection-v0.1 \
       --input_key context_messages \
       --apply_chat_template \
-      --max_samples 100000 \
       --normalize_reward \
-      --adam_offload \
-      --flash_attn \
       --gradient_checkpointing \
-      --use_wandb {wandb_token}
+      --packing_samples \
+      --vllm_sync_backend nccl \
+      --enforce_eager \
+      --vllm_enable_sleep \
+      --deepspeed_enable_sleep
 
-- For the PPO / `REINFORCE++ <https://www.researchgate.net/publication/387487679_REINFORCE_A_SIMPLE_AND_EFFICIENT_APPROACH_FOR_ALIGNING_LARGE_LANGUAGE_MODELS>`_ with Ray and vLLM, please refer to :ref:`rayppo`.
+
+- For more details about the PPO and other online RLHF algorithms with Ray and vLLM, please refer to :ref:`rayppo`.
 - OpenRLHF provides usage scripts and docs for the supported algorithms in `examples/scripts <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples/scripts>`_ and :doc:`usage`.
 
 .. _nvidia-docker:
