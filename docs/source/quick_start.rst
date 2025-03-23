@@ -12,12 +12,12 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
 
    # Launch the docker container
    docker run --runtime=nvidia -it --rm --shm-size="10g" --cap-add=SYS_ADMIN -v $PWD:/openrlhf nvcr.io/nvidia/pytorch:24.07-py3 bash
-   pip uninstall xgboost transformer_engine flash_attn pynvml -y
+   pip uninstall xgboost transformer_engine flash_attn pynvml opencv-python-headless -y
 
    # pip install
    pip install openrlhf
 
-   # If you want to use vLLM acceleration (To install vLLM 0.7.2)
+   # If you want to use vLLM acceleration (To install vLLM 0.8.1)
    pip install openrlhf[vllm]
    # latest vLLM is also supported
    pip install openrlhf[vllm_latest]
@@ -30,7 +30,8 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    cd OpenRLHF
    pip install -e .
 
-.. note:: We recommend using vLLM 0.7.2+. 
+.. note:: We recommend using vLLM 0.8.1+. 
+   ``export VLLM_USE_V1=1`` requires vLLM 0.8.2 or the Nightly version and enable ``export VLLM_ENABLE_V1_MULTIPROCESSING=0`` and ``export RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=1``. 
    We also provided the `Dockerfiles for vLLM <https://github.com/OpenRLHF/OpenRLHF/tree/main/dockerfile>`_  and  :ref:`nvidia-docker`.
 
 Prepare Datasets

@@ -18,6 +18,7 @@ Related options:
 - ``--disable_ds_ckpt``: Do not save DeepSpeed checkpoints to save disk space, but this will prevent the training progress from being recoverable.
 - ``--max_ckpt_num``: Maximum number of latest checkpoints to keep.
 - ``--max_ckpt_mem``: Maximum memory size (GB) allocated for storing checkpoints.
+- ``--universal_ckpt``: Use deepspeed universal checkpoint.
 
 SFT
 
