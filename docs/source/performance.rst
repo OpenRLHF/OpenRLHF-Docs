@@ -4,7 +4,7 @@ Performance Tuning Guide
 Ray PPO
 -----------
 
-To achieve optimal performance, we recommend allocating nodes `vLLM:Actor:Critic = 1:1:1`. 
+To achieve optimal performance, we recommend allocating nodes ``vLLM:Actor:Critic = 1:1:1``. 
 
 - For example, for a 70B model with 48 A100 GPUs, it is advised to allocate 16 A100 GPUs to the vLLM Engine, 16 GPUs to the Actor model, and the remaining 16 GPUs to the Critic model. 
 - Using hybrid engine ``--colocate_all_models`` and ``--vllm_enable_sleep`` and ``--deepspeed_enable_sleep`` rather than distributed RLHF when there are enough GPU memory.
