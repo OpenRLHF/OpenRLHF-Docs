@@ -31,7 +31,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    pip install -e .
 
 .. note:: We recommend using vLLM 0.8.1+. 
-   ``export VLLM_USE_V1=1`` requires vLLM 0.8.2 or the Nightly version and enable ``export VLLM_ENABLE_V1_MULTIPROCESSING=0`` and ``export RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=1``. 
+   ``export VLLM_USE_V1=1`` requires vLLM 0.8.2 or the Nightly version and enable ``export VLLM_ENABLE_V1_MULTIPROCESSING=0``. 
    We also provided the `Dockerfiles for vLLM <https://github.com/OpenRLHF/OpenRLHF/tree/main/dockerfile>`_  and  :ref:`nvidia-docker`.
 
 Prepare Datasets
