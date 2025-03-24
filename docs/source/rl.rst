@@ -303,6 +303,7 @@ PPO
 - ``--temperature``: PPO samling temperature for LLMs
 - ``--gamma``: ``gamma`` for RL, default value is ``1.0``
 - ``--lambd``: ``lambda`` for GAE, default value is ``0.95``
+- ``--no_advantage_std_norm``: disable dividing by std for advantages while keeping mean normalization
 
 Datasets
 
