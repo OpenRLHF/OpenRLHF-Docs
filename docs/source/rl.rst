@@ -320,10 +320,11 @@ REINFORCE++ /RLOO with Ray (vLLM)
 In REINFORCE-like algorithms, the value network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational resources.
 We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/387487679_REINFORCE_A_SIMPLE_AND_EFFICIENT_APPROACH_FOR_ALIGNING_LARGE_LANGUAGE_MODELS>`_ alignment method.
 
-- REINFORCE++ integrates ``key optimization techniques from PPO`` while eliminating the need for a critic network.
-- REINFORCE++-baseline uses the ``mean reward of multiple samples from the same prompt`` as the baseline to reshape the rewards (without group ``/std``).
-- RLOO in OpenRLHF modifies the original version by incorporating the per-token KL reward and utilizing the PPO-clip loss
-- GRPO can be enabled by setting ``--advantage_estimator group_norm`` and using KL loss
+- REINFORCE++ incorporates ``key optimization techniques from PPO`` while completely eliminating the need for a critic network.
+- REINFORCE++-baseline leverages the ``mean reward across multiple samples generated from the same prompt`` as a baseline for reward reshaping (with global batch normalization ``/std``).
+- RLOO implementation in OpenRLHF enhances the original algorithm by introducing per-token KL reward and adopting the PPO-clip loss mechanism.
+- GRPO functionality can be activated by configuring ``--advantage_estimator group_norm`` along with K3 KL loss.
+- Dr. GRPO represents a variant that eliminates the ``/std`` normalization present in GRPO.
 
 .. code-block:: bash
    
@@ -373,6 +374,6 @@ We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/3874
 
 Options
 
-- ``--advantage_estimator`` set to ``gae`` (for PPO), ``reinforce``, ``rloo``, ``reinforce_baseline`` or ``group_norm`` (for GRPO)
+- ``--advantage_estimator`` set to ``gae`` (for PPO), ``reinforce``, ``rloo``, ``reinforce_baseline`` or ``group_norm`` (for GRPO) or ``dr_grpo`` (for DR-GRPO)
 - ``--use_kl_loss`` Add KL loss (required for GRPO) into policy loss and disable KL reward
 
