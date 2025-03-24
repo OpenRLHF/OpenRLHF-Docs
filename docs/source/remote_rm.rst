@@ -218,4 +218,7 @@ then just set
         --runtime-env-json='{"working_dir": "/openrlhf"}' \
         -- python3 -m openrlhf.cli.train_ppo_ray \
         ...
-        --remote_rm_url /path/to/reward_func.py
+        --remote_rm_url /path/to/reward_func.py \
+        --label_key answer
+
+where the ``label_key`` parameter is used to pass additional sample information such as answer to the reward function.
