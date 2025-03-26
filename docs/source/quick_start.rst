@@ -17,7 +17,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    # pip install
    pip install openrlhf
 
-   # If you want to use vLLM acceleration (To install vLLM 0.8.1)
+   # If you want to use vLLM acceleration (To install vLLM 0.8.2)
    pip install openrlhf[vllm]
    # latest vLLM is also supported
    pip install openrlhf[vllm_latest]
@@ -30,7 +30,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    cd OpenRLHF
    pip install -e .
 
-.. note:: We recommend using vLLM 0.8.1+. 
+.. note:: We recommend using vLLM 0.8.2+. 
    ``export VLLM_USE_V1=1`` requires vLLM 0.8.2 or the Nightly version and enable ``export VLLM_ENABLE_V1_MULTIPROCESSING=0``. 
    We also provided the `Dockerfiles for vLLM <https://github.com/OpenRLHF/OpenRLHF/tree/main/dockerfile>`_  and  :ref:`nvidia-docker`.
 
