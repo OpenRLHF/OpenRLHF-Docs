@@ -17,7 +17,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    # pip install
    pip install openrlhf
 
-   # If you want to use vLLM acceleration (To install vLLM 0.8.2)
+   # If you want to use vLLM acceleration (To install vLLM 0.8.3)
    pip install openrlhf[vllm]
    # latest vLLM is also supported
    pip install openrlhf[vllm_latest]
@@ -30,8 +30,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    cd OpenRLHF
    pip install -e .
 
-.. note:: We recommend using vLLM 0.8.2+. 
-   ``export VLLM_USE_V1=1`` requires vLLM 0.8.2 or the Nightly version and enable ``export VLLM_ENABLE_V1_MULTIPROCESSING=0``. 
+.. note:: We recommend using vLLM 0.8.3+. 
    We also provided the `Dockerfiles for vLLM <https://github.com/OpenRLHF/OpenRLHF/tree/main/dockerfile>`_  and  :ref:`nvidia-docker`.
 
 Prepare Datasets
@@ -72,19 +71,12 @@ How Chat Templating Works:
 
    "<s>[INST] Hello, how are you? [/INST]I'm doing great. How can I help you today?</s> [INST] I'd like to show off how chat templating works! [/INST]"
 
-How to specify training and test datasets ?
+How to specify test datasets ?
 
-You can specify it using the ``data_type@data_dir`` format. For example, the dataset can be set as ``--dataset json@./data``.
-
-.. code-block:: bash
-
-   data
-   ├── test.jsonl
-   └── train.jsonl
+Please set test datasets path using ``--eval_dataset {name or path}``.
 
 
-.. note:: By default, we use ``train`` and ``test`` as splits to distinguish training and testing datasets from Huggingface.
-   The ``JSON key`` options depends on the specific datasets. 
+.. note:: The ``JSON key`` options depends on the specific datasets. 
    See  `Reward Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/datasets/reward_dataset.py#L10>`_ and `SFT Dataset <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/datasets/sft_dataset.py#L9>`_
 
 Pretrained Models
