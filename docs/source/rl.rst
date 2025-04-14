@@ -32,15 +32,14 @@ Training
 
 Datasets
 
-- ``--dataset``: Dataset names or paths
+- ``--dataset``: Dataset names or paths for training
 - ``--dataset_probs``: Dataset mixing probabilities
+- ``--eval_dataset``: Dataset names or paths for evaluation
 - ``--input_key``: Input JSON key for conversions
 - ``--apply_chat_template``: Use HuggingFace ``tokenizer.apply_chat_template``
 - ``--input_template``: Custom ``input_template`` (when not using ``tokenizer.apply_chat_template``), set to ``None`` to disable it. Such as ``$'User: {}\nAssistant: '``.
 - ``--max_len``: Max length for the samples
 - ``--max_samples``: Max training samples
-- ``--train_split``: HF datasets split for training, default value is ``train``
-- ``--eval_split``: HF datasets split for evaluation, default value is ``test``
 - ``--packing_samples``: Packing samples using Flash Attention 2
 
 LoRA
@@ -248,6 +247,7 @@ To improve RLHF training speed or support 70B models, we can use the ``PPO with 
       --use_wandb {wandb_token}
 
 
+.. note:: It is recommended to use a hybrid engine :ref:`hybrid_engine` to avoid resource idling.
 .. note:: Do not set ``--vllm_num_engines`` means not using the vLLM engine. Ray + vLLM does not supports LoRA currently. You can also use ``setup_commands`` to let Ray automatically deploy the environment, such as ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'``
 .. note:: If you want to run on AMD GPUs, or for whatever reason you encounter an error related to index out of range when deepspeed sets up the GPU devices, you can try to set the environment variable `RAY_EXPERIMENTAL_NOSET_*_VISIBLE_DEVICES <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/trainer/ray/utils.py>`_ as a workaround.
 .. code-block:: bash
@@ -295,14 +295,16 @@ PPO
 - ``--prompt_max_len``: Max length for the prompts
 - ``--generate_max_len``: Max length for the responses
 - ``--n_samples_per_prompt``: Generate n samples for each promot
+- ``--eval_n_samples_per_prompt``: Number of samples for evaluation
 - ``--freezing_actor_steps``: Freezing the actor parameters to init critic in the first n steps
-- ``--reward_pretrain``: Can be set to multiple reward models, such as ``RewardMode1,RewardModel2,RewardModel3``
+- ``--reward_pretrain``: Can be set to a reward model which is used for reward and critic initialization
 - ``--actor_learning_rate``: Actor model learning rate
 - ``--critic_learning_rate``: Critic model learning rate
 - ``--reward_clip_range``: Reward value cliprange, such as ``(-10, 10)``
 - ``--temperature``: PPO samling temperature for LLMs
+- ``--eval_temperature``: PPO samling temperature for evaluation
 - ``--gamma``: ``gamma`` for RL, default value is ``1.0``
-- ``--lambd``: ``lambda`` for GAE, default value is ``0.95``
+- ``--lambd``: ``lambda`` for GAE, default value is ``1.0``
 - ``--no_advantage_std_norm``: disable dividing by std for advantages while keeping mean normalization
 
 Datasets
@@ -311,8 +313,7 @@ Datasets
 - ``--prompt_data_probs``: Dataset mixing probabilities
 - ``--pretrain_data``: Dataset names or paths (Pretrain)
 - ``--pretrain_data_probs``: Dataset mixing probabilities
-- ``--prompt_split``: HF datasets split for training (Prompts), default value is ``train``
-- ``--pretrain_split``: HF datasets split for training (Pretrain), default value is ``train`` 
+- ``--eval_dataset``: Dataset names or paths for evaluation
 
 
 REINFORCE++ /RLOO with Ray (vLLM)

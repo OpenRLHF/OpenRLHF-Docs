@@ -5,6 +5,8 @@ Hybrid Engine
 Ray RLHF using Hybrid Engine
 ------------
 
+.. _hybrid_engine:
+
 OpenRLHF also supports the hybrid engine, allowing all models and vLLM engines to share the GPUs to avoid resource idling.
 
 .. code-block:: bash
