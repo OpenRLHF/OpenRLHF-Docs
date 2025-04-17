@@ -311,8 +311,6 @@ Datasets
 
 - ``--prompt_data``: Dataset names or paths (Prompts)
 - ``--prompt_data_probs``: Dataset mixing probabilities
-- ``--pretrain_data``: Dataset names or paths (Pretrain)
-- ``--pretrain_data_probs``: Dataset mixing probabilities
 - ``--eval_dataset``: Dataset names or paths for evaluation
 
 
