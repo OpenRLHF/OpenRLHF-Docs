@@ -43,7 +43,7 @@ Here is an example
 
     echo "STARTING HEAD at $node_1"  &>> ${JOBLOG}
     srun --nodes=1 --ntasks=1 -w "$node_1" --container-image="$IMAGE_NAME" --container-mounts="$MOUNT" bash -c \
-    && pip install ray[default]==$RAY_VERSION \
+    "pip install ray[default]==$RAY_VERSION \
     && /root/.local/bin/ray start --head --node-ip-address=$ip --port=$port --block" &>> ${JOBLOG} &
     sleep 10s
 
@@ -52,8 +52,8 @@ Here is an example
     node_i=${nodes_array[$i]}
     echo "STARTING WORKER $i at $node_i"  &>> ${JOBLOG}
     srun --nodes=1 --ntasks=1 -w "$node_i" --container-image="$IMAGE_NAME" --container-mounts="$MOUNT" bash -c \
-        && pip install ray[default]==$RAY_VERSION \
-        && /root/.local/bin/ray start --address "$ip_head" --block" &>> ${JOBLOG} &
+        "pip install ray[default]==$RAY_VERSION \
+        && /root/.local/bin/ray start --address $ip_head --block" &>> ${JOBLOG} &
     sleep 1s;
     done
 
