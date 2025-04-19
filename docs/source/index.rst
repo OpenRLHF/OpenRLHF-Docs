@@ -1,13 +1,20 @@
 Welcome to OpenRLHF's documentation!
 ===================================
 
-`OpenRLHF <https://github.com/OpenRLHF/OpenRLHF>`_ is an easy-to-use, scalable and high-performance RLHF Framework built on Ray, DeepSpeed and HF Transformers.
+`OpenRLHF <https://github.com/OpenRLHF/OpenRLHF>`_ is the first easy-to-use, high-performance RLHF framework built on Ray, vLLM, DeepSpeed and HuggingFace Transformers, designed to make RLHF training simple and accessible:
 
-- **Simple and Easy-to-use**: OpenRLHF stands out as one of the simplest high-performance RLHF libraries available, fully compatible with Huggingface models and datasets.
-- **High Performance**: In RLHF training, 80% of the time is spent on the sample generation stage. OpenRLHF excels here, leveraging large inference batch sizes with Ray, Adam Offload (Pinned Memory), and vLLM generation acceleration. 
-- **Distributed RLHF**: OpenRLHF distributes the Actor, Reward, Reference, and Critic models across separate GPUs using Ray, while placing the Adam optimizer on the CPU. This setup enables full-scale fine-tuning of models with 70B+ parameters on multiple A100 80G GPUs and vLLM, as well as 7B models across multiple 24GB RTX 4090 GPUs.
-- **Hybrid Engine**: OpenRLHF also supports the hybrid engine, allowing all models and vLLM engines to share the GPUs to avoid resource idling.
-- **PPO Implementation Optimization**: To enhance training stability, we have integrated various implementation tricks for PPO, details in `Zhihu <https://zhuanlan.zhihu.com/p/622134699>`_ and  the `Advanced Tricks for Training Large Language Models with Proximal Policy Optimization <https://hijkzzz.notion.site/rlhf-implementation-tricks?v=158d9a33ecc98132bf9e000c39227361&pvs=74>`_.
+- **Distributed Architecture with Ray**  
+  OpenRLHF leverages `Ray <https://github.com/ray-project/ray>`_ for efficient distributed scheduling. It separates the Actor, Reward, Reference, and Critic models across different GPUs, enabling scalable training for models up to 70B parameters.  
+  It also supports **Hybrid Engine** scheduling, allowing all models and vLLM engines to share GPU resources—minimizing idle time and maximizing GPU utilization.
+
+- **vLLM Inference Acceleration + AutoTP**  
+  RLHF training spends 80% of the time on the sample generation stage. Powered by `vLLM <https://github.com/vllm-project/vllm>`_ and Auto Tensor Parallelism (AutoTP), OpenRLHF delivers high-throughput, memory-efficient samples generation. Native integration with HuggingFace Transformers ensures seamless and fast generation, making it the fastest RLHF framework available.
+
+- **Memory-Efficient Training with ZeRO-3**  
+  Built on `DeepSpeed's <https://github.com/deepspeedai/DeepSpeed>`_ ZeRO-3 and `deepcompile <https://github.com/deepspeedai/DeepSpeed/blob/master/blogs/deepcompile/README.md>`_, OpenRLHF enables large model training without heavyweight frameworks. It works directly with HuggingFace for easy loading and fine-tuning of pretrained models.
+
+- **Optimized PPO Implementation**  
+  Incorporates advanced PPO tricks inspired by practical guides and community best practices, enhancing training stability and reward quality in RLHF workflows. Referencing `Zhihu <https://zhuanlan.zhihu.com/p/622134699>`_ and `Advanced Tricks for Training Large Language Models with Proximal Policy Optimization <https://hijkzzz.notion.site/rlhf-implementation-tricks?v=158d9a33ecc98132bf9e000c39227361>`_.
 
 For more technical details, see our `technical report <https://arxiv.org/abs/2405.11143>`_ and `slides <https://docs.google.com/presentation/d/1JRhB1d7csofx0PIZBmfyBdMluxNd5JLPpUHrrvVhGnk/edit?usp=sharing>`_.
 
