@@ -315,7 +315,7 @@ Datasets
 - ``--eval_dataset``: Dataset names or paths for evaluation
 
 
-REINFORCE++ /RLOO with Ray (vLLM)
+REINFORCE++/GRPO/RLOO with Ray (vLLM)
 ------------
 
 In REINFORCE-like algorithms, the value network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational resources.
