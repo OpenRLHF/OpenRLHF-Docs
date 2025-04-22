@@ -319,7 +319,7 @@ REINFORCE++ /RLOO with Ray (vLLM)
 ------------
 
 In REINFORCE-like algorithms, the value network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational resources.
-We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/387487679_REINFORCE_A_SIMPLE_AND_EFFICIENT_APPROACH_FOR_ALIGNING_LARGE_LANGUAGE_MODELS>`_ alignment method.
+We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment method.
 
 - REINFORCE++ incorporates ``key optimization techniques from PPO`` into REINFORCE while completely eliminating the need for a critic network.
 - REINFORCE++-baseline leverages the ``mean reward across multiple samples generated from the same prompt`` as a baseline for reward reshaping (with global batch normalization ``/std``).
