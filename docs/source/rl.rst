@@ -245,9 +245,9 @@ To improve RLHF training speed or support 70B models, we can use the ``PPO with 
       --flash_attn \
       --gradient_checkpointing \
       --use_wandb {wandb_token}
+   
 
-
-.. note:: It is recommended to use a hybrid engine :ref:`hybrid_engine` to avoid resource idling.
+.. note:: It is recommended to use the hybrid engine to avoid resource idling.
 .. note:: Ray + vLLM does not supports LoRA currently. You can also use ``setup_commands`` to let Ray automatically deploy the environment, such as ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'``
 .. note:: If you want to run on AMD GPUs, or for whatever reason you encounter an error related to index out of range when deepspeed sets up the GPU devices, you can try to set the environment variable `RAY_EXPERIMENTAL_NOSET_*_VISIBLE_DEVICES <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/trainer/ray/utils.py>`_ as a workaround.
 .. code-block:: bash
@@ -306,6 +306,7 @@ PPO
 - ``--gamma``: ``gamma`` for RL, default value is ``1.0``
 - ``--lambd``: ``lambda`` for GAE, default value is ``1.0``
 - ``--no_advantage_std_norm``: disable dividing by std for advantages while keeping mean normalization
+- ``--entropy_loss_coef``: entropy loss coefficient
 
 Datasets
 
@@ -320,7 +321,7 @@ REINFORCE++ /RLOO with Ray (vLLM)
 In REINFORCE-like algorithms, the value network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational resources.
 We also proposed the `REINFORCE++ <https://www.researchgate.net/publication/387487679_REINFORCE_A_SIMPLE_AND_EFFICIENT_APPROACH_FOR_ALIGNING_LARGE_LANGUAGE_MODELS>`_ alignment method.
 
-- REINFORCE++ incorporates ``key optimization techniques from PPO`` while completely eliminating the need for a critic network.
+- REINFORCE++ incorporates ``key optimization techniques from PPO`` into REINFORCE while completely eliminating the need for a critic network.
 - REINFORCE++-baseline leverages the ``mean reward across multiple samples generated from the same prompt`` as a baseline for reward reshaping (with global batch normalization ``/std``).
 - RLOO implementation in OpenRLHF enhances the original algorithm by introducing per-token KL reward and adopting the PPO-clip loss mechanism.
 - GRPO functionality can be activated by configuring ``--advantage_estimator group_norm`` along with K3 KL loss.
