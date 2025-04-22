@@ -127,7 +127,7 @@ Then you can use the startup scripts we provide in the `examples <https://github
       --bf16 \
       --actor_learning_rate 5e-7 \
       --critic_learning_rate 9e-6 \
-      --init_kl_coef 1e-4 \
+      --init_kl_coef 1e-3 \
       --prompt_data OpenRLHF/prompt-collection-v0.1 \
       --input_key context_messages \
       --apply_chat_template \
