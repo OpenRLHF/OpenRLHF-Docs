@@ -29,7 +29,7 @@ Training
 - ``--max_epoch``: Training epochs
 - ``--lr_warmup_ratio``: Warmup ratio of the learning rate
 - ``--use_liger_kernel``: Use Liger Kernel
-- ``--ds_tensor_parallel_size``: DeepSpeed Tensor Parallel Size (AutoTP), only used when ``--zero_stage 0 / 1 / 2`
+- ``--ds_tensor_parallel_size``: DeepSpeed Tensor Parallel Size (AutoTP), only used when ``--zero_stage 0 / 1 / 2``
 
 Datasets
 
