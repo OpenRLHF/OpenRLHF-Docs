@@ -21,6 +21,8 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    pip install openrlhf[vllm]
    # latest vLLM is also supported
    pip install openrlhf[vllm_latest]
+   # Install vLLM, ring-flash-attention and Liger-Kernel
+   pip install openrlhf[vllm,ring,liger]
 
    # pip install the latest version
    pip install git+https://github.com/OpenRLHF/OpenRLHF.git
