@@ -94,12 +94,7 @@ Then you can use the startup scripts we provide in the `examples <https://github
 
 .. code-block:: bash
 
-   # launch the master node of ray in container
-   ray start --head --node-ip-address 0.0.0.0 --num-gpus 8
-
-   ray job submit --address="http://127.0.0.1:8265" \
-      --runtime-env-json='{"working_dir": "/openrlhf"}' \
-      -- python3 -m openrlhf.cli.train_ppo_ray \
+   python3 -m openrlhf.cli.train_ppo_ray \
       --ref_num_nodes 1 \
       --ref_num_gpus_per_node 8 \
       --reward_num_nodes 1 \
