@@ -7,7 +7,7 @@ copyright = '2025, OpenRLHF'
 author = 'OpenRLHF'
 
 release = '0.7'
-version = '0.7.4'
+version = '0.7.5'
 
 # -- General configuration
 
@@ -26,6 +26,8 @@ intersphinx_mapping = {
 intersphinx_disabled_domains = ['std']
 
 templates_path = ['_templates']
+
+html_static_path = ['_static']
 
 # -- Options for HTML output
 

@@ -16,7 +16,11 @@ Welcome to OpenRLHF's documentation!
 - **Optimized PPO Implementation**  
   Incorporates advanced PPO tricks inspired by practical guides and community best practices, enhancing training stability and reward quality in RLHF workflows. Referencing `Zhihu <https://zhuanlan.zhihu.com/p/622134699>`_ and `Advanced Tricks for Training Large Language Models with Proximal Policy Optimization <https://hijkzzz.notion.site/rlhf-implementation-tricks?v=158d9a33ecc98132bf9e000c39227361>`_.
 
-For more technical details, see our `technical report <https://arxiv.org/abs/2405.11143>`_ and `slides <https://docs.google.com/presentation/d/1JRhB1d7csofx0PIZBmfyBdMluxNd5JLPpUHrrvVhGnk/edit?usp=sharing>`_.
+.. image:: _static/openrlhf.png
+   :alt: OpenRLHF Architecture
+   :width: 600px
+
+For more technical details, see our `slides <https://docs.google.com/presentation/d/1JRhB1d7csofx0PIZBmfyBdMluxNd5JLPpUHrrvVhGnk/edit?usp=sharing>`_ and `technical report <https://arxiv.org/abs/2405.11143>`_ .
 
 Check out the :doc:`quick_start` section for further information, including
 how to :ref:`installation` the project.
