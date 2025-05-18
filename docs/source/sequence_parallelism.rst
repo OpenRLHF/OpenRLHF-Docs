@@ -114,4 +114,4 @@ RM Training
       --gradient_checkpointing
 
 
-More algorithm (such as PPO) support is under development.
+The PPO/GRPO/REINFORCE++ also support sequence parallelism using the same options.
