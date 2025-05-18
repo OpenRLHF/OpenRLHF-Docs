@@ -1,6 +1,8 @@
 Asynchronous RL and Agent RL
 =====
 
+In Agent RL training, the agent environments, vLLM, and DeepSpeed typically operate asynchronously, similar to traditional game RL. Therefore, OpenRLHF supports an asynchronous execution mode between these three components to better facilitate Agent RL training.
+
 
 Asynchronous Agent RL
 ------------
