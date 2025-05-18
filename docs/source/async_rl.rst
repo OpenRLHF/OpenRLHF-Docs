@@ -12,6 +12,8 @@ Asynchronous Agent RL
 OpenRLHF provides comprehensive support for both Asynchronous RLHF and Agent-based RLHF implementations. To utilize these features, simply include the ``--async_train`` and ``--agent_func_path`` parameters in your training configuration. 
 
 .. code-block:: bash
+   # Required for Async LLM + Hybrid Engine
+   export VLLM_USE_V1=1
    
    ray job submit --address="http://127.0.0.1:8265" \
       --runtime-env-json='{"working_dir": "/openrlhf"}' \
@@ -90,9 +92,6 @@ Synchronous Agent RL using Hybrid Engine
 Asynchronous training may affect the training stability. It is recommended to prioritize using Hybrid Engine or synchronous training mode.
 
 .. code-block:: bash
-
-   # Required for Async LLM + Hybrid Engine
-   export VLLM_USE_V1=1
    
    python3 -m openrlhf.cli.train_ppo_ray \
       --ref_num_nodes 1 \
