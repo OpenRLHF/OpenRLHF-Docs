@@ -55,6 +55,7 @@ Note that ``--colocate_all_models`` with ``--async_train`` only merge the deepsp
 The ``--agent_func_path`` indicates the path to the agent function, such as:
 
 .. code-block:: python
+
    # agent_func.py
    step_idx = 0
    max_steps = 2
@@ -89,7 +90,8 @@ Synchronous Agent RL using Hybrid Engine
 Asynchronous training may affect the training stability. It is recommended to prioritize using Hybrid Engine or synchronous training mode.
 
 .. code-block:: bash
-
+   
+   # Set environment variables for vLLM Async Engine
    export PYTORCH_NVML_BASED_CUDA_CHECK=1
    export VLLM_USE_V1=1
 
