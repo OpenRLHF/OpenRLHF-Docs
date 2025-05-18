@@ -51,7 +51,8 @@ OpenRLHF provides comprehensive support for both Asynchronous RLHF and Agent-bas
       --packing_samples \
       --async_train
 
-``--agent_func_path`` indicates the path to the agent function, such as:
+Note that ``--colocate_all_models`` with ``--async_train`` only merge the deepspeed models, not the vllm engines.
+The ``--agent_func_path`` indicates the path to the agent function, such as:
 
 .. code-block:: python
    # agent_func.py
