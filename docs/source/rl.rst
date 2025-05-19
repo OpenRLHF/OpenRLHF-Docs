@@ -248,7 +248,7 @@ To improve RLHF training speed or support 70B models, we can use the ``PPO with 
       --use_wandb {wandb_token}
    
 
-.. note:: It is recommended to use the hybrid engine to avoid resource idling.
+.. note:: It is recommended to use the Hybrid Engine or asynchronous training mode to avoid resource idling.
 .. note:: Ray + vLLM does not supports LoRA currently. You can also use ``setup_commands`` to let Ray automatically deploy the environment, such as ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'``
 .. note:: If you want to run on AMD GPUs, or for whatever reason you encounter an error related to index out of range when deepspeed sets up the GPU devices, you can try to set the environment variable `RAY_EXPERIMENTAL_NOSET_*_VISIBLE_DEVICES <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/trainer/ray/utils.py>`_ as a workaround.
 .. code-block:: bash
@@ -377,5 +377,8 @@ We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment
 Options
 
 - ``--advantage_estimator`` set to ``gae`` (for PPO), ``reinforce``, ``rloo``, ``reinforce_baseline`` or ``group_norm`` (for GRPO) or ``dr_grpo`` (for DR-GRPO)
-- ``--use_kl_loss`` Add KL loss (required for GRPO) into policy loss and disable KL reward
+- ``--use_kl_loss`` Add KL loss (required for GRPO) into policy loss and disable KL in reward
+- ``--dynamic_filtering``: Enable dynamic filtering for GRPO/REINFORCE++-baseline
+- ``--dynamic_filtering_reward_range``: Dynamic filtering reward range for GRPO/REINFORCE++-baseline, the default value is ``(0, 1)`` (both exclusive)
+
 
