@@ -292,7 +292,7 @@ PPO
 - ``--micro_train_batch_size``: Batch size per GPU for training
 - ``--train_batch_size``: PPO mini-batch size
 - ``--micro_rollout_batch_size``: Batch size per GPU for generation
-- ``--rollout_batch_size``: Replay Buffer Size ``= rollout_batch_size * n_samples_per_prompt``
+- ``--rollout_batch_size``: Replay Buffer Size is ``rollout_batch_size * n_samples_per_prompt``
 - ``--prompt_max_len``: Max length for the prompts
 - ``--generate_max_len``: Max length for the responses
 - ``--n_samples_per_prompt``: Generate n samples for each promot
@@ -308,6 +308,9 @@ PPO
 - ``--lambd``: ``lambda`` for GAE, default value is ``1.0``
 - ``--no_advantage_std_norm``: disable dividing by std for advantages while keeping mean normalization
 - ``--entropy_loss_coef``: entropy loss coefficient
+- ``--eps_clip``: PPO clip range, default value is ``0.2``
+- ``--eps_clip_low_high``: PPO clip range for reward, default value is ``None``
+- ``--value_clip``: Value clip range, default value is ``0.5``
 
 Datasets
 
