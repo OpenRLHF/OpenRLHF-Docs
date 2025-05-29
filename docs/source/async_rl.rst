@@ -77,9 +77,14 @@ The ``--agent_func_path`` indicates the path to the agent function, such as:
          next_state = state + action + " The answer is not correct, please try again: "
       step_idx += 1
 
-      # Extra info
-      extra_info = {}
-      return reward, next_state, done, extra_info
+      return {
+         "rewards": reward,  # Rewards for advantage calculation
+         "scores": reward,  # Scores for dynamic filtering (0-1 reward)
+         "next_state": next_state,  # The updated state for vLLM in next step
+         "done": done,  # Boolean indicating if the episode is complete
+         "sampling_params": kwargs.get("sampling_params", None),  # Parameters for vLLM sampling in next step
+         "extra_logs": {"dummy_scores": reward},  # Additional logging information
+      }
 
 You can also configure the maximum number of concurrent agents per vLLM engine by setting ``export OPENRLHF_ASYNC_NUM_TASKS=128``. 
 Additionally, you can control the degree of off-policy sampling by setting ``export OPENRLHF_ASYNC_QUEUE_SIZE=1`` (this parameter controls how many batches of data can be stored in the buffer at most) in your environment.

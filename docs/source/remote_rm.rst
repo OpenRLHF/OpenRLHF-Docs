@@ -27,19 +27,6 @@ First, we need to start a remote reward model server on the remote server, which
 
     logger = init_logger(__name__)
 
-
-    def strip_sequence(text, pad_token, eos_token):
-        pad_token_escaped = re.escape(pad_token)
-        eos_token_escaped = re.escape(eos_token)
-
-        pattern = f"({eos_token_escaped}|{pad_token_escaped})+$"
-        text = re.sub(pattern, "", text)
-
-        pattern = f"^({eos_token_escaped}|{pad_token_escaped})+"
-        text = re.sub(pattern, "", text)
-        return text
-
-
     class RewardModelProxy:
         def __init__(self, args):
             # Modify the reward_model to your remote model
@@ -67,12 +54,6 @@ First, we need to start a remote reward model server on the remote server, which
             else:
                 batch_size = self.batch_size
 
-            # remove pad_token
-            for i in range(len(queries)):
-                queries[i] = (
-                    strip_sequence(queries[i], self.tokenizer.pad_token, self.tokenizer.eos_token)
-                    + self.tokenizer.eos_token
-                )
             logger.info(f"queries[0]: {queries[0]}")
 
             scores = []
@@ -127,7 +108,7 @@ First, we need to start a remote reward model server on the remote server, which
             data = await request.json()
             queries = data.get("query")
             rewards = reward_model.get_reward(queries)
-            result = {"rewards": rewards}
+            result = {"rewards": rewards, "scores": rewards, "extra_logs": {"dummy_scores": rewards}}
             logger.info(f"Sent JSON: {result}")
             return JSONResponse(result)
 
@@ -207,7 +188,14 @@ OpenRLHF supports convenient and efficient Reinforced Fine-tuning. You only need
         # queries is prompts + responses
         # labels is answers
         print(queries)
-        return torch.randn(len(queries))
+        reward = torch.randint(0, 2, (len(queries),)).float()
+
+        return {
+            "rewards": reward,  # Rewards for advantage calculation
+            "scores": reward,  # Scores for dynamic filtering (0-1 reward)
+            "extra_logs": {"dummy_scores": reward},  # Additional logging info for wandb
+        }
+
 
 
 then just set
