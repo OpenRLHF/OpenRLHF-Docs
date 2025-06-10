@@ -24,7 +24,7 @@ Here is an example
     # project settings
     OPENRLHF_PATH=<OPENRLHF_ROOT_PATH>
     MOUNT="$OPENRLHF_PATH:/openrlhf,$HOME/.cache:/root/.cache"
-    IMAGE_NAME="nvcr.io/nvidia/pytorch:24.07-py3"
+    IMAGE_NAME="nvcr.io/nvidia/pytorch:25.02-py3"
     RAY_VERSION=2.12.0
 
     JOBLOG="$(realpath .)/train_ppo_llama_ray-$SLURM_JOB_ID.log"
@@ -129,7 +129,7 @@ Here is an example for DPO
     #SBATCH --overcommit               # needed for pytorch
 
     OPENRLHF_PATH=<OPENRLHF_ROOT_PATH>
-    IMAGE_NAME="nvcr.io/nvidia/pytorch:24.07-py3"
+    IMAGE_NAME="nvcr.io/nvidia/pytorch:25.02-py3"
     MOUNT="$OPENRLHF_PATH:/openrlhf,$HOME/.cache:/root/.cache"
     GPUS_PER_NODE=8
     JOBLOG="$(pwd)/logs/$training_script-$SLURM_JOB_ID.log"

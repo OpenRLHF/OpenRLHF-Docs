@@ -11,18 +11,22 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
 .. code-block:: bash
 
    # Launch the docker container
-   docker run --runtime=nvidia -it --rm --shm-size="10g" --cap-add=SYS_ADMIN -v $PWD:/openrlhf nvcr.io/nvidia/pytorch:24.07-py3 bash
+   docker run --runtime=nvidia -it --rm --shm-size="10g" --cap-add=SYS_ADMIN -v $PWD:/openrlhf nvcr.io/nvidia/pytorch:25.02-py3 bash
    pip uninstall xgboost transformer_engine flash_attn pynvml opencv-python-headless -y
 
    # pip install
    pip install openrlhf
 
-   # If you want to use vLLM acceleration (To install vLLM 0.8.5.post1)
+   # If you want to use vLLM acceleration (To install vLLM 0.9.0.1)
    pip install openrlhf[vllm]
    # latest vLLM is also supported
    pip install openrlhf[vllm_latest]
    # Install vLLM, ring-flash-attention and Liger-Kernel
    pip install openrlhf[vllm,ring,liger]
+
+   # Install flash-attn 2.7.4.post1 for PyTorch 2.7
+   # Example for Python 3.12, replace filename if using 3.10 or 3.11
+   pip install https://github.com/Zarrac/my-pytorch-builds/releases/download/flash-attn-2.7.4.post1-cuda12.8/flash_attn-2.7.4.post1+pt270cu128cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
 
    # pip install the latest version
    pip install git+https://github.com/OpenRLHF/OpenRLHF.git
@@ -32,7 +36,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    cd OpenRLHF
    pip install -e .
 
-.. note:: We recommend using vLLM 0.8.5.post1+. 
+.. note:: We recommend using vLLM 0.9.0.1+. 
    We also provided the `Dockerfiles for vLLM <https://github.com/OpenRLHF/OpenRLHF/tree/main/dockerfile>`_  and  :ref:`nvidia-docker`.
 
 Prepare Datasets
