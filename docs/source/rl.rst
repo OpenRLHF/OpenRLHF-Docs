@@ -326,7 +326,7 @@ In REINFORCE-like algorithms, the value network is not used; instead, advantage 
 We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment method.
 
 - REINFORCE++ incorporates ``key optimization techniques from PPO`` into REINFORCE while completely eliminating the need for a critic network.
-- REINFORCE++-baseline leverages the ``mean reward across multiple samples generated from the same prompt`` as a baseline for reward reshaping (with global batch normalization ``/std``).
+- REINFORCE++-baseline leverages the ``mean reward across multiple samples generated from the same prompt`` as a baseline for reward reshaping, then apply global advantage normalization.
 - RLOO implementation in OpenRLHF enhances the original algorithm by introducing per-token KL reward and adopting the PPO-clip loss mechanism.
 - GRPO functionality can be activated by configuring ``--advantage_estimator group_norm`` along with K3 KL loss.
 - Dr. GRPO represents a variant that eliminates the ``/std`` normalization present in GRPO.
