@@ -24,11 +24,6 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
    # Install vLLM, ring-flash-attention and Liger-Kernel
    pip install openrlhf[vllm,ring,liger]
 
-   # Install flash-attn 2.7.4.post1 for PyTorch 2.7
-   # Example for Python 3.12, replace filename if using 3.10 or 3.11
-   pip install https://github.com/OpenRLHF/flash-attn-2.7.4.post1-builds/releases/download/v0.1/flash_attn-2.7.4.post1+pt270cu128cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
-
-
    # pip install the latest version
    pip install git+https://github.com/OpenRLHF/OpenRLHF.git
 
