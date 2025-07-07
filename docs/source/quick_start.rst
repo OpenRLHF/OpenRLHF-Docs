@@ -105,20 +105,20 @@ Then you can use the startup scripts we provide in the `examples <https://github
       --vllm_tensor_parallel_size 1 \
       --colocate_all_models \
       --vllm_gpu_memory_utilization 0.6 \
-      --advantage_estimator reinforce \
+      --advantage_estimator reinforce_baseline \
       --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
       --reward_pretrain OpenRLHF/Llama-3-8b-rm-700k \
       --save_path /openrlhf/examples/test_scripts/final/llama3-8b-rlhf \
       --ckpt_path /openrlhf/examples/test_scripts/ckpt/llama3-8b-rlhf \
       --save_hf_ckpt \
-      --micro_train_batch_size 4 \
+      --micro_train_batch_size 8 \
       --train_batch_size 128 \
-      --micro_rollout_batch_size 8 \
+      --micro_rollout_batch_size 16 \
       --rollout_batch_size 1024 \
-      --n_samples_per_prompt 1 \
+      --n_samples_per_prompt 4 \
       --max_epochs 1 \
       --prompt_max_len 1024 \
-      --max_samples 100000 \
+      --max_samples 25000 \
       --generate_max_len 1024 \
       --zero_stage 3 \
       --bf16 \
