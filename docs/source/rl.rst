@@ -280,6 +280,9 @@ Ray and vLLM
 - ``--vllm_sync_with_ray``: Use `ray.util.collective <https://docs.ray.io/en/latest/ray-more-libs/ray-collective.html>`_ to synchronize vLLM weights and avoid NCCL hang.
 - ``--enable_prefix_caching``: Enable `enable_prefix_caching <https://docs.vllm.ai/en/stable/automatic_prefix_caching/apc.html>`_ in vLLM generation
 - ``--packing_samples``: Packing PPO samples in training and forward
+- ``--use_dynamic_batch``: Use dynamic batch size for PPO training
+- ``--rollout_max_tokens_per_gpu``: Max tokens per GPU for rollout for ``use_dynamic_batch``
+- ``--train_max_tokens_per_gpu``: Max tokens per GPU for training for ``use_dynamic_batch``
 
 PPO
 
