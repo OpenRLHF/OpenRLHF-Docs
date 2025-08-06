@@ -314,6 +314,8 @@ PPO
 - ``--eps_clip``: PPO clip range, default value is ``0.2``
 - ``--eps_clip_low_high``: PPO clip range for reward, default value is ``None``
 - ``--value_clip``: Value clip range, default value is ``0.5``
+- ``--enable_vllm_is_correction``: Enable `vLLM important sampling correction <https://fengyao.notion.site/off-policy-rl>`_
+- ``--vllm_is_truncated_threshold``: Truncated threshold for vLLM important sampling correction
 
 Datasets
 
