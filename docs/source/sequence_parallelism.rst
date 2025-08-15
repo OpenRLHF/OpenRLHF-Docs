@@ -49,7 +49,7 @@ SFT
       --zero_stage 2 \
       --max_epochs 1 \
       --bf16 \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --packing_samples \
       --ring_attn_size 2 \
       --ring_head_stride 2 \
@@ -81,7 +81,7 @@ DPO
       --ring_attn_size 2 \
       --ring_head_stride 2 \
       --packing_samples \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --load_checkpoint \
       --gradient_checkpointing
 
@@ -109,7 +109,7 @@ RM Training
       --ring_attn_size 2 \
       --ring_head_stride 2 \
       --packing_samples \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --load_checkpoint \
       --gradient_checkpointing
 

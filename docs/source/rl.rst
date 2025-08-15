@@ -14,7 +14,7 @@ Training
 - ``--adam_betas``: Adam betas, default value is ``(0.9, 0.95)``
 - ``--overlap_comm``: Enable backward & gradient overlap_comm for Deepspeed (overlap_comm uses 4.5x the allgather_bucket_size and reduce_bucket_size values.)
 - ``--bf16``: Enable bfloat16
-- ``--flash_attn``: Enable Flash Attention 2
+- ``--attn_implementation``: Attention implementation (e.g., eager, flash_attention_2, flash_attention_3, kernels-community/vllm-flash-attn3)
 - ``--gradient_checkpointing``: Enable Gradient Checkpointing
 - ``--save_path``: Final HuggingFace model save path
 - ``--use_wandb``: Set to ``{wandb_token}`` or ``True`` with shell command ``wandb login``
@@ -84,7 +84,7 @@ Supervised Fine-tuning
       --zero_stage 2 \
       --max_epochs 1 \
       --bf16 \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --packing_samples \
       --learning_rate 5e-6 \
       --gradient_checkpointing \
@@ -99,7 +99,7 @@ Options
 - ``--packing_samples``: Packing SFT samples
 - ``--multiturn``: Enable multi turn fine-tuning loss
 
-.. note:: OpenRLHF SFT/DPO/RM trainers support ``--packing_samples`` `using --flash_attn <https://github.com/MeetKai/functionary/tree/main/functionary/train/packing>`_
+.. note:: OpenRLHF SFT/DPO/PPO/RM trainers support ``--packing_samples`` `using flash_attention <https://github.com/MeetKai/functionary/tree/main/functionary/train/packing>`_
 
 
 
@@ -125,7 +125,7 @@ Reward Model Training
       --apply_chat_template \
       --chosen_key chosen \
       --rejected_key rejected \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --packing_samples \
       --gradient_checkpointing \
       --use_wandb {wandb_token}
@@ -175,7 +175,7 @@ Process Reward Model (PRM) Training
       --dataset peiyi9979/Math-Shepherd \
       --input_key input \
       --label_key label \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --load_checkpoint \
       --gradient_checkpointing \
       --packing_samples \
@@ -243,7 +243,7 @@ To improve RLHF training speed or support 70B models, we can use the ``PPO with 
       --packing_samples \
       --normalize_reward \
       --adam_offload \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --gradient_checkpointing \
       --use_wandb {wandb_token}
    
@@ -378,7 +378,7 @@ We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment
       --packing_samples \
       --normalize_reward \
       --adam_offload \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --gradient_checkpointing \
       --use_wandb {wandb_token}
 

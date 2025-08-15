@@ -101,7 +101,7 @@ Here is an example
         --vllm_sync_backend nccl \
         --packing_samples \
         --adam_offload \
-        --flash_attn \
+        --attn_implementation flash_attention_2 \
         --gradient_checkpointing \
         --use_wandb {wandb_token}" &>> ${JOBLOG}
 
@@ -154,7 +154,7 @@ Here is an example for DPO
         --chosen_key chosen \
         --rejected_key rejected \
         --packing_samples \
-        --flash_attn \
+        --attn_implementation flash_attention_2 \
         --gradient_checkpointing \
         --use_wandb {wandb_token}"
 

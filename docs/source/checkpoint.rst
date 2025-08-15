@@ -41,7 +41,7 @@ SFT
       --zero_stage 2 \
       --max_epochs 1 \
       --bf16 \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --learning_rate 5e-6 \
       --gradient_checkpointing \
       --save_steps 200 \
@@ -92,7 +92,7 @@ Ray PPO with vLLM
       --apply_chat_template \
       --normalize_reward \
       --adam_offload \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --gradient_checkpointing \
       --save_steps 20 \
       --ckpt_path /openrlhf/examples/checkpoint/ckpt/ \

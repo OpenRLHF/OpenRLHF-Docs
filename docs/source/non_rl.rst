@@ -24,7 +24,7 @@ Direct Preference Optimization (DPO)
       --apply_chat_template \
       --chosen_key chosen \
       --rejected_key rejected \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --gradient_checkpointing \
       --use_wandb {wandb_token}
 
@@ -64,7 +64,7 @@ Kahneman-Tversky Optimization (KTO)
       --output_key response \
       --label_key score \
       --input_template $'User: {}\nAssistant: ' \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --beta 0.1 \
       --gradient_checkpointing \
       --use_wandb {wandb_token}
@@ -390,7 +390,7 @@ Knowledge Distillation (MiniLLM)
       --zero_stage 3 \
       --max_epochs 1 \
       --bf16 \
-      --flash_attn \
+      --attn_implementation flash_attention_2 \
       --kd_coef 0.4 \
       --learning_rate 5e-6 \
       --gradient_checkpointing \

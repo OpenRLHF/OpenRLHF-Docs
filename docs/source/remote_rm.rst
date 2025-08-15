@@ -93,7 +93,12 @@ First, we need to start a remote reward model server on the remote server, which
         # Performance
         parser.add_argument("--load_in_4bit", action="store_true", default=False)
         parser.add_argument("--bf16", action="store_true", default=False, help="Enable bfloat16")
-        parser.add_argument("--flash_attn", action="store_true", default=False, help="Enable FlashAttention2")
+        parser.add_argument(
+            "--attn_implementation",
+            type=str,
+            default="flash_attention_2",
+            help="Attention implementation (e.g., eager, flash_attention_2, flash_attention_3, kernels-community/vllm-flash-attn3)",
+        )
         parser.add_argument("--disable_fast_tokenizer", action="store_true", default=False)
         parser.add_argument("--batch_size", type=int, default=None)
 
@@ -122,7 +127,7 @@ Launch the reward model server
         --reward_pretrain OpenRLHF/Llama-3-8b-rm-700k \
         --port 5000 \
         --bf16 \
-        --flash_attn \
+        --attn_implementation flash_attention_2 \
         --normalize_reward \
         --max_len 8192 \
         --batch_size 16
@@ -167,7 +172,7 @@ Then, we can specify ``remote_rm_urls`` during PPO training.
         --apply_chat_template \
         --normalize_reward \
         --adam_offload \
-        --flash_attn \
+        --attn_implementation flash_attention_2 \
         --gradient_checkpointing \
         --use_wandb {wandb_token}
 
