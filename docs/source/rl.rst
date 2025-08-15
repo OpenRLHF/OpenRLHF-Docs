@@ -331,7 +331,7 @@ In REINFORCE-like algorithms, the value network is not used; instead, advantage 
 We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment method.
 
 - REINFORCE++ incorporates ``key optimization techniques from PPO`` into REINFORCE while completely eliminating the need for a critic network.
-- REINFORCE++-baseline leverages the ``mean reward across multiple samples generated from the same prompt`` as a baseline for reward reshaping, then apply global advantage normalization.
+- `REINFORCE++-baseline <https://medium.com/@janhu9527/reinforce-baseline-is-all-you-need-in-rlvr-f5406930aa85>`_ leverages the ``mean reward across multiple samples generated from the same prompt`` as a baseline for reward reshaping, then apply global advantage normalization.
 - RLOO implementation in OpenRLHF enhances the original algorithm by introducing per-token KL reward and adopting the PPO-clip loss mechanism.
 - GRPO functionality can be activated by configuring ``--advantage_estimator group_norm`` along with K3 KL loss.
 - Dr. GRPO represents a variant that eliminates the ``/std`` normalization present in GRPO.
@@ -362,8 +362,8 @@ We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment
       --train_batch_size 128 \
       --micro_rollout_batch_size 32 \
       --rollout_batch_size 128 \
-      --n_samples_per_prompt 1 \
-      --max_samples 100000 \
+      --n_samples_per_prompt 4 \
+      --max_samples 20000 \
       --max_epochs 1 \
       --prompt_max_len 1024 \
       --generate_max_len 1024 \
@@ -371,7 +371,7 @@ We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment
       --bf16 \
       --actor_learning_rate 5e-7 \
       --init_kl_coef 0.01 \
-      --advantage_estimator reinforce \
+      --advantage_estimator reinforce_baseline \
       --prompt_data OpenRLHF/prompt-collection-v0.1 \
       --input_key context_messages \
       --apply_chat_template \
