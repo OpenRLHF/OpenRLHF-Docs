@@ -12,7 +12,7 @@ To achieve optimal performance, we recommend allocating nodes ``vLLM:Actor:Criti
 - Enable the ``--colocate_critic_reward``, ``--colocate_actor_ref`` options to merge nodes.  
 - You should increase the ``rollout_micro_batch_size`` (and minimize the TP size of vLLM engine) as much as possible. During the training phase, a larger ``--micro_train_batch_size`` is better and enable ``--packing_samples``.
 - When there are enough GPU memory, please disable ``--adam_offload`` and enable ``--overlap_comm``. Also enable ``--deepcompile`` to speed up the training.
-- For vLLM, please use ``--vllm_sync_backend nccl`` with vLLM 0.10.0+.   
+- For vLLM, please use ``--vllm_sync_backend nccl`` with vLLM 0.10.1+.   
 - Enable ``--use_dynamic_batch`` to accelerate the training.
 - Enable `enable_prefix_caching <https://docs.vllm.ai/en/stable/automatic_prefix_caching/apc.html>`_ in vLLM generation when ``n_samples_per_prompts`` > 1.
 - For a large base model, if an OOM occurs, do not use any ``--colocate_xxxx`` options.
