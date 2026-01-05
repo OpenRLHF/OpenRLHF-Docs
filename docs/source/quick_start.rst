@@ -102,7 +102,7 @@ Typical RLHF Workflow
 
 Use this as a checklist, then jump to the canonical recipes:
 
-1. **Supervised Fine-tuning (SFT)**: see :ref:`train_sft` in :doc:`agent_training`.
+1. **Supervised Fine-tuning (SFT)**: see :ref:`train_sft` in :doc:`non_rl`.
 2. **Reward Model training (RM)**: see :ref:`train_rm` in :doc:`agent_training`.
 3. **RL training (Ray + vLLM)**: see :ref:`rayppo` in :doc:`agent_training`.
 

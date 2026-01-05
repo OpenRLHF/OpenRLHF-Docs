@@ -1,7 +1,50 @@
 Non-RL Methods
 ==============
 
-This page covers preference-based / non-RL training methods (e.g., DPO, KTO) and iterative data filtering workflows.
+This page covers supervised / preference-based / non-RL training methods (e.g., SFT, DPO, KTO) and iterative data filtering workflows.
+
+.. _train_sft:
+
+Supervised Fine-tuning (SFT)
+----------------------------
+
+.. code-block:: bash
+
+   deepspeed --module openrlhf.cli.train_sft \
+      --max_len 2048 \
+      --dataset Open-Orca/OpenOrca \
+      --input_key question \
+      --output_key response \
+      --input_template $'User: {}\\nAssistant: ' \
+      --train_batch_size 256 \
+      --micro_train_batch_size 8 \
+      --max_samples 500000 \
+      --pretrain meta-llama/Meta-Llama-3-8B \
+      --save_path ./checkpoint/llama3-8b-sft \
+      --save_steps -1 \
+      --logging_steps 1 \
+      --eval_steps -1 \
+      --zero_stage 2 \
+      --max_epochs 1 \
+      --bf16 \
+      --attn_implementation flash_attention_2 \
+      --packing_samples \
+      --learning_rate 5e-6 \
+      --gradient_checkpointing \
+      --use_wandb {wandb_token}
+
+Options
+~~~~~~~
+
+- ``--input_key``: JSON dataset key for conversions
+- ``--apply_chat_template``: Use HuggingFace ``tokenizer.apply_chat_template``
+- ``--tokenizer_chat_template``: Custom ``chat_template`` for HuggingFace tokenizer template
+- ``--pretrain_mode``: Continue pretrain mode
+- ``--packing_samples``: Packing SFT samples
+- ``--multiturn``: Enable multi turn fine-tuning loss
+
+.. note::
+   OpenRLHF SFT/DPO/PPO/RM trainers support ``--packing_samples`` `using flash_attention <https://github.com/MeetKai/functionary/tree/main/functionary/train/packing>`_
 
 Direct Preference Optimization (DPO)
 ------------------------------------
