@@ -1,5 +1,5 @@
 Welcome to OpenRLHF's documentation!
-===================================
+====================================
 
 OpenRLHF is a high-performance, production-ready RLHF framework combining **Ray + vLLM distributed architecture** with a **unified agent-based design paradigm**.
 
@@ -8,26 +8,31 @@ OpenRLHF is a high-performance, production-ready RLHF framework combining **Ray 
    :align: center
    :width: 700px
 
-What Makes OpenRLHF Unique?
-----------------------------
+Start here
+----------
+
+New to OpenRLHF? Start with :doc:`quick_start` (includes a short reading guide). Use :doc:`troubleshooting` when you hit issues.
+
+What makes OpenRLHF unique?
+---------------------------
 
 **Core Innovation**: Unified agent-based paradigm that decouples execution modes from RL algorithms
 
-- **🎯 Agent-Based Paradigm**: Token-in-token-out execution with two orthogonal dimensions (see :doc:`agent_paradigm`)
+- **Agent-Based Paradigm**: Token-in-token-out execution with two orthogonal dimensions (see :doc:`agent_paradigm`)
   
-  - **Execution Modes**: :doc:`single_turn_agent` (default) | :doc:`multi_turn_agent` (advanced)
-  - **RL Algorithms**: Any algorithm works with any mode (see :doc:`rl`)
+  - **Execution Modes**: :ref:`single_turn_mode` (default) | :ref:`multi_turn_mode` (advanced) in :doc:`agent_training`
+  - **Training Guide**: Recipes + algorithms + modes in one place (see :doc:`agent_training`)
 
-- **🏗️ Distributed Architecture**: Ray + vLLM for scalable training up to 70B+ parameters (see :doc:`architecture`)
-- **⚡ Production Ready**: Hybrid Engine, async training, comprehensive monitoring (see :doc:`hybrid_engine` and :doc:`performance`)
+- **Distributed Architecture**: Ray + vLLM for scalable training up to 70B+ parameters (see :doc:`architecture`)
+- **Production Ready**: Hybrid Engine, async training, comprehensive monitoring (see :doc:`hybrid_engine` and :doc:`performance`)
 
 Quick Links
 -----------
 
 - **Getting Started**: :doc:`quick_start` - Installation and first RLHF training
 - **Core Concepts**: :doc:`architecture` (Ray + vLLM) | :doc:`agent_paradigm` (Design Paradigm)
-- **Agent Execution**: :doc:`single_turn_agent` (default, 99% use cases) | :doc:`multi_turn_agent` (advanced)
-- **Training Methods**: :doc:`rl` (PPO, REINFORCE++, GRPO) | :doc:`non_rl` (DPO, KTO, etc.)
+- **Agent Execution**: :ref:`single_turn_mode` (default) | :ref:`multi_turn_mode` (advanced) in :doc:`agent_training`
+- **Training Guide**: :doc:`agent_training` (SFT/RM/RL + single/multi-turn) | :doc:`non_rl` (DPO, KTO, etc.)
 - **Advanced Topics**: :doc:`hybrid_engine` | :doc:`performance` | :doc:`multi-node`
 
 Resources
@@ -46,37 +51,32 @@ Contents
 
 .. toctree::
    :maxdepth: 2
-   :caption: Getting Started
+   :caption: Getting Started (Read in order)
 
    quick_start
+   troubleshooting
 
 .. toctree::
    :maxdepth: 2
-   :caption: Core Architecture
+   :caption: Core Concepts
 
-   architecture
    agent_paradigm
+   architecture
 
 .. toctree::
    :maxdepth: 2
-   :caption: Agent Execution Modes
+   :caption: Training Guides
 
-   single_turn_agent
-   multi_turn_agent
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Training Methods
-
-   rl
+   agent_training
    non_rl
 
 .. toctree::
    :maxdepth: 2
-   :caption: Advanced Features
+   :caption: Scaling & Operations
 
    hybrid_engine
    performance
-   multi-node
    checkpoint
    sequence_parallelism
+   multi-node
+   nvidia_docker

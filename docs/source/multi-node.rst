@@ -1,8 +1,8 @@
 Multi-node Training
-=====
+===================
 
 How to launch Ray PPO on Slurm?
-------------
+-----------------------------------
 
 Here is an example
 
@@ -109,7 +109,7 @@ Here is an example
 
 
 How to launch SFT/RM/DPO training on Slurm?
-------------
+----------------------------------------------
 
 Here is an example for DPO
 
@@ -176,7 +176,7 @@ Here is an example for DPO
 
 
 How to specify a particular node for a model in Ray PPO?
-------------
+------------------------------------------------------------
 
 In Ray, you can control task scheduling by specifying the node's IP address. Ray allows you to specify resource constraints when submitting tasks, and you can use custom resource labels to help the scheduler select the appropriate node. Here is a basic example demonstrating how to use Ray's resource labels and IP addresses to specify nodes:
 

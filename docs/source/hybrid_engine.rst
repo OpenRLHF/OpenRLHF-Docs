@@ -75,7 +75,7 @@ OpenRLHF supports the hybrid engine, allowing all models and vLLM engines to sha
       --deepspeed_enable_sleep
 
 .. note::
-   - **Agent Execution**: Works with both single-turn and multi-turn modes (see :doc:`single_turn_agent` and :doc:`multi_turn_agent`)
+   - **Agent Execution**: Works with both single-turn and multi-turn modes (see :doc:`agent_training`)
    - **Algorithm Compatibility**: Works with all RL algorithms (change ``--advantage_estimator`` to switch)
 
 Options
@@ -131,6 +131,33 @@ Performance Tips
 3. **Increase Gradually**: Increase to 0.6 or 0.7 if stable
 4. **Enable Sleep Modes**: Always use ``--vllm_enable_sleep`` and ``--deepspeed_enable_sleep``
 5. **Use NCCL**: Set ``--vllm_sync_backend nccl`` for faster weight sync
+
+Async training (mutually exclusive with Hybrid Engine)
+------------------------------------------------------
+
+Async training overlaps rollout and training to increase throughput, but it may affect stability (more off-policy).
+
+**Important**: Async training and Hybrid Engine are **mutually exclusive**. Do **not** use ``--async_train`` together with ``--colocate_all_models``.
+
+Minimal async setup
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+   export VLLM_USE_V1=1
+   ray job submit --address="http://127.0.0.1:8265" \
+      --runtime-env-json='{"working_dir": "/openrlhf"}' \
+      -- python3 -m openrlhf.cli.train_ppo_ray \
+      --agent_func_path /path/to/agent_func.py \
+      --async_train \
+      --async_queue_size 1 \
+      ... # other training args
+
+Key knobs
+~~~~~~~~~
+
+- ``--async_train``: enable async training
+- ``--async_queue_size``: async buffer size (larger may be more off-policy, default 1)
 
 Troubleshooting
 ---------------

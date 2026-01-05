@@ -1,8 +1,10 @@
 Non-RL Methods
-=====
+==============
+
+This page covers preference-based / non-RL training methods (e.g., DPO, KTO) and iterative data filtering workflows.
 
 Direct Preference Optimization (DPO)
------------------------------------
+------------------------------------
 
 .. code-block:: bash
 
@@ -76,6 +78,47 @@ Options
 - ``--label_key``: JSON dataset key for the label
 - ``--ref_offload``: Offload Reference Model to CPU
 - ``--apply_chat_template``: Use HuggingFace ``tokenizer.apply_chat_template`` (Use ``--input_key`` to specify ``conversions``)
+
+.. _train_prm:
+
+Process Reward Model (PRM) Training
+--------------------------------------------------
+
+PRM training is a supervised workflow that learns **process-level reward signals** from labeled data. Although it is often used together with RL, it is not an RL update itself, so we keep the recipe here alongside other non-RL / data-flow methods.
+
+.. code-block:: bash
+
+   deepspeed --module openrlhf.cli.train_prm \
+      --save_path ./checkpoint/mistal-7b-prm \
+      --save_steps 500 \
+      --logging_steps 1 \
+      --eval_steps 100 \
+      --train_batch_size 256 \
+      --micro_train_batch_size 8 \
+      --pretrain mistralai/Mistral-7B-v0.1  \
+      --bf16 \
+      --max_epochs 1 \
+      --max_len 8192 \
+      --zero_stage 3 \
+      --learning_rate 1e-6 \
+      --dataset peiyi9979/Math-Shepherd \
+      --input_key input \
+      --label_key label \
+      --attn_implementation flash_attention_2 \
+      --load_checkpoint \
+      --gradient_checkpointing \
+      --packing_samples \
+      --wandb_group prm \
+      --placeholder_token "ки" \
+      --reward_tokens "+" "-"
+
+Options
+^^^^^^^
+
+- ``--input_key``: JSON dataset key for input text
+- ``--label_key``: JSON dataset key for reward label
+- ``--placeholder_token``: Step placeholder token
+- ``--reward_tokens``: Reward label tokens
 
 
 Rejection Sampling & RAFT
@@ -184,7 +227,7 @@ Rejection Sampling & RAFT
 .. _batch_inference:
 
 Options for ``openrlhf.cli.batch_inference``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - ``--eval_task``: set to ``generate_vllm``, ``generate`` (HF generate) or ``rm``
 - ``--iter``: used to slice the datasets in range ``iter * rollout_batch_size: (iter + 1) * rollout_batch_size``
@@ -204,7 +247,7 @@ Options for ``openrlhf.cli.batch_inference``
 
 
 Iterative DPO
-------------
+-------------
 
 .. code-block:: bash
 
@@ -309,7 +352,7 @@ Options for ``batch_inference``, refer to :ref:`batch_inference`.
 
 
 Conditional SFT
-------------
+---------------
 
 .. code-block:: bash
 
@@ -368,7 +411,7 @@ Extra options for ``Conditional SFT``:
 
 
 Knowledge Distillation (MiniLLM)
-------------
+--------------------------------------------------
 
 .. code-block:: bash
 

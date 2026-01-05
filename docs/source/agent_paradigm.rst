@@ -96,7 +96,7 @@ Two Execution Modes (Orthogonal to Algorithms)
 - GRPO + Multi-Turn
 - (Any algorithm + Any mode)
 
-See :doc:`single_turn_agent` and :doc:`multi_turn_agent` for detailed usage guides.
+See :doc:`agent_training` for the consolidated training + execution guide (single-turn and multi-turn).
 
 Key Advantages
 --------------

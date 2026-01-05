@@ -20,18 +20,12 @@ Execution Mode Selection
    * - Mode
      - When to Use
      - Configuration
-   * - **Hybrid Engine (Recommended)**
+   * - **Hybrid Engine (Default)**
      - Sufficient GPU memory
      - ``--colocate_all_models`` + ``--vllm_enable_sleep`` + ``--deepspeed_enable_sleep``
    * - **Asynchronous**
      - Throughput critical, convergence validated
      - ``--async_train`` + ``--agent_func_path``
-   * - **Distributed (Default)**
-     - Memory constrained or simple setup
-     - No special flags
-
-.. tip::
-   **Recommended Priority**: Hybrid Engine > Synchronous > Asynchronous for best stability-throughput balance.
 
 Resource Allocation (Distributed Mode)
 ---------------------------------------
