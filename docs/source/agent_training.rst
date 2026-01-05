@@ -134,6 +134,23 @@ All RL training in OpenRLHF uses the **agent execution pipeline** (single-turn b
    - Use ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'`` to let Ray automatically deploy the environment
    - For AMD GPUs or GPU device index errors, set ``RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=1`` (NVIDIA) or ``RAY_EXPERIMENTAL_NOSET_ROCR_VISIBLE_DEVICES=1`` (AMD)
 
+Dynamic sampling (multi-sample + dynamic filtering)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For reasoning tasks, it is common to generate **multiple rollouts per prompt** and then train only on a subset of them. OpenRLHF provides a *dynamic sampling* workflow via:
+
+- ``--n_samples_per_prompt``: how many completions to generate for each prompt (multi-sample rollouts)
+- ``--dynamic_filtering`` + ``--dynamic_filtering_reward_range <low> <high>``: filter samples by reward range (drop out-of-range samples)
+- ``--use_dynamic_batch`` with token budgets: reduce padding waste for variable/long sequences
+
+Guidelines:
+
+- **Batch size relation**: a common choice is ``train_batch_size = rollout_batch_size * n_samples_per_prompt`` (e.g., ``128 * 8 = 1024``).
+  With ``--dynamic_filtering``, the effective batch may become smaller if many samples are filtered out.
+- **Reward range**: ``--dynamic_filtering_reward_range`` is applied to the scalar reward returned by your reward function / RM.
+  If your rewards are not naturally in ``[0, 1]``, adjust the range (or enable ``--normalize_reward`` if appropriate).
+- **Token budgets**: when using ``--use_dynamic_batch``, tune ``--train_max_tokens_per_gpu`` and ``--rollout_max_tokens_per_gpu`` to match your GPU memory and sequence lengths.
+
 Off-policy correction: TIS and ICEPOP
 -------------------------------------
 
@@ -404,69 +421,11 @@ Multi-turn agents can wrap external evaluators/environments (e.g., game envs, ex
 Useful upstream examples
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Async pipeline RLHF (``--async_train``): `train_reinforce_baseline_llama_ray_async.sh <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_llama_ray_async.sh>`_
-- Async agent RLHF (``--agent_func_path`` + async): `train_reinforce_baseline_llama_ray_agent_async.sh <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_llama_ray_agent_async.sh>`_
-- NeMo Gym integration: `train_reinforce_nemogym.sh <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_nemogym.sh>`_
+- Async agent RLHF (``--agent_func_path`` + ``--async_train``): `train_reinforce_baseline_ray_agent_async.sh <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_ray_agent_async.sh>`_
+- REINFORCE++-baseline + Hybrid Engine: `train_reinforce_baseline_hybrid_engine.sh <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_hybrid_engine.sh>`_
 
 Common Options (Shared Across Trainers)
 ---------------------------------------
 
-We provide launch scripts for supported algorithms in the `examples/scripts <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples/scripts>`_ directory.
-
-Training
-~~~~~~~~
-
-- ``--zero_stage``: DeepSpeed ZeRO Stage
-- ``--adam_offload``: Offload the Adam Optimizer to CPU
-- ``--adam_betas``: Adam betas, default value is ``(0.9, 0.95)``
-- ``--overlap_comm``: Enable backward & gradient overlap_comm for Deepspeed (overlap_comm uses 4.5x the allgather_bucket_size and reduce_bucket_size values.)
-- ``--bf16``: Enable bfloat16
-- ``--attn_implementation``: Attention implementation (e.g., eager, flash_attention_2, flash_attention_3, kernels-community/vllm-flash-attn3)
-- ``--gradient_checkpointing``: Enable Gradient Checkpointing
-- ``--save_path``: Final HuggingFace model save path
-- ``--use_wandb``: Set to ``{wandb_token}`` or ``True`` with shell command ``wandb login``
-- ``--use_tensorboard``: Set to ``{tensorboard logs path}``
-- ``--learning_rate``: Learning Rate
-- ``--l2``: Weight Decay
-- ``--lr_scheduler``: Learning Rate Scheduler
-- ``--max_norm``: Gradient clipping
-- ``--micro_train_batch_size``: Batch size per GPU for training
-- ``--train_batch_size``: Global training batch size
-- ``--aux_loss_coef``: Balancing loss coefficient for MoE
-- ``--max_epoch``: Training epochs
-- ``--lr_warmup_ratio``: Warmup ratio of the learning rate
-- ``--use_liger_kernel``: Use Liger Kernel
-- ``--ds_tensor_parallel_size``: DeepSpeed Tensor Parallel Size (AutoTP), only used when ``--zero_stage 0 / 1 / 2``
-
-Datasets
-~~~~~~~~
-
-- ``--dataset``: Dataset names or paths for training
-- ``--dataset_probs``: Dataset mixing probabilities
-- ``--eval_dataset``: Dataset names or paths for evaluation
-- ``--input_key``: Input JSON key for conversions
-- ``--apply_chat_template``: Use HuggingFace ``tokenizer.apply_chat_template``
-- ``--input_template``: Custom ``input_template`` (when not using ``tokenizer.apply_chat_template``), set to ``None`` to disable it. Such as ``$'User: {}\\nAssistant: '``.
-- ``--max_len``: Max length for the samples
-- ``--max_samples``: Max training samples
-- ``--packing_samples``: Packing samples using Flash Attention 2
-
-LoRA
-~~~~
-
-- ``--load_in_4bit``: Use QLoRA
-- ``--lora_rank``: Set to ``integer > 0`` to enable LoRA
-- ``--lora_dropout``: LoRA dropout for HuggingFace PEFT (LoRA)
-- ``--target_modules``: Target modules for HuggingFace PEFT (LoRA)
-
-If you use ``LoRA (Low-Rank Adaptation)``, ``OpenRLHF`` will not save the full weights by default instead of ``LoRA Adapter``. To continue in your task normally, you should combine the ``Adapter`` with weights of your base model
-
-.. code-block:: bash
-
-   python -m openrlhf.cli.lora_combiner \
-      --model_path meta-llama/Meta-Llama-3-8B \
-      --lora_path ./checkpoint/llama3-8b-rm \
-      --output_path ./checkpoint/llama-3-8b-rm-combined \
-      --is_rm \
-      --bf16
+Common CLI options shared across OpenRLHF trainers are documented in :doc:`common_options`.
 

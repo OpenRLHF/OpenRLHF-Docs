@@ -54,7 +54,6 @@ Contents
    :caption: Getting Started (Read in order)
 
    quick_start
-   troubleshooting
 
 .. toctree::
    :maxdepth: 2
@@ -68,6 +67,7 @@ Contents
    :caption: Training Guides
 
    agent_training
+   common_options
    non_rl
 
 .. toctree::
@@ -80,3 +80,4 @@ Contents
    sequence_parallelism
    multi-node
    nvidia_docker
+   troubleshooting
