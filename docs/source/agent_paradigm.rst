@@ -65,10 +65,10 @@ Core Design Principles
      - Sync/Async/Hybrid Engine support
      - From research to deployment
 
-Two Execution Modes
---------------------
+Two Execution Modes (Orthogonal to Algorithms)
+-----------------------------------------------
 
-The agent execution mode is **independent** of the RL algorithm you choose. You can use **any algorithm** (PPO, REINFORCE++, GRPO, etc.) with **any execution mode**:
+**Important**: Execution modes are **completely independent** from RL algorithms. You can use **any algorithm** (PPO, REINFORCE++, GRPO, RLOO) with **any execution mode** (single-turn or multi-turn).
 
 .. list-table::
    :header-rows: 1
@@ -76,16 +76,25 @@ The agent execution mode is **independent** of the RL algorithm you choose. You 
 
    * - Mode
      - Use Cases
-     - Interface
+     - Configuration
      - Complexity
    * - **Single-Turn**
      - Standard RLHF, custom reward functions
-     - Optional ``reward_func()``
-     - ⭐ Default (99% use cases)
+     - Default or ``--remote_rm_url``
+     - ⭐ Default
    * - **Multi-Turn**
      - Multi-step reasoning, interactive environments
-     - ``reset()`` + ``step()``
+     - ``--agent_func_path``
      - ⭐⭐ Advanced
+
+**Example Combinations** (all valid):
+- PPO + Single-Turn
+- PPO + Multi-Turn
+- REINFORCE++ + Single-Turn
+- REINFORCE++ + Multi-Turn
+- GRPO + Single-Turn
+- GRPO + Multi-Turn
+- (Any algorithm + Any mode)
 
 See :doc:`single_turn_agent` and :doc:`multi_turn_agent` for detailed usage guides.
 
@@ -98,25 +107,25 @@ Key Advantages
 4. **Extensibility**: Easy to implement custom rewards and environments
 5. **Production Ready**: Supports synchronous, asynchronous, and hybrid engine modes
 
-Implementation Notes
---------------------
+How to Use
+----------
 
-.. note:: 
-   The agent execution mode is set via:
-   
-   - **Single-Turn**: Default mode (no flag) or ``--remote_rm_url`` for custom rewards
-   - **Multi-Turn**: Set ``--agent_func_path /path/to/agent.py``
+**Selecting Execution Mode**:
 
-.. note::
-   All RL algorithms (PPO, REINFORCE++, GRPO, RLOO) work with both execution modes. The algorithm is selected via ``--advantage_estimator``:
-   
-   - ``gae`` (default): PPO
-   - ``reinforce``: REINFORCE++
-   - ``reinforce_baseline``: REINFORCE++-baseline
-   - ``rloo``: RLOO
-   - ``group_norm``: GRPO
-   - ``dr_grpo``: Dr. GRPO
+- **Single-Turn** (default): No extra flag needed, or use ``--remote_rm_url`` for custom rewards
+- **Multi-Turn**: Set ``--agent_func_path /path/to/agent.py``
+
+**Selecting RL Algorithm**:
+
+Use ``--advantage_estimator`` flag:
+
+- ``gae`` (default): PPO
+- ``reinforce``: REINFORCE++
+- ``reinforce_baseline``: REINFORCE++-baseline  
+- ``rloo``: RLOO
+- ``group_norm``: GRPO
+- ``dr_grpo``: Dr. GRPO
 
 .. warning::
-   When using custom agent implementations, always follow the **token-in-token-out principle** to ensure consistency between sampling and training.
+   When implementing custom agents, always follow the **token-in-token-out principle** to ensure consistency between sampling and training.
 

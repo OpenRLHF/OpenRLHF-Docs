@@ -1,18 +1,7 @@
 Reinforcement Learning from Human Feedback (RLHF)
 =====
 
-Overview
---------
-
-All RL training in OpenRLHF runs through the **unified agent execution pipeline**. Whether you're doing standard PPO or multi-turn reasoning, the training follows a consistent agent-based paradigm that ensures **token-level consistency** between generation and training.
-
-**Key Concepts**:
-
-- **Agent Execution Modes**: Single-turn (default, 99% use cases) or Multi-turn (advanced interactions)
-- **Algorithm Independence**: All RL algorithms (PPO, REINFORCE++, GRPO, RLOO) work with both execution modes
-- **Token-in-Token-out**: Zero text-level mismatches, perfect consistency
-
-See :doc:`agent_paradigm` for detailed architecture overview.
+OpenRLHF provides comprehensive RL training with **algorithm-mode independence**: any RL algorithm can be used with any agent execution mode. See :doc:`agent_paradigm` for core design principles.
 
 Common Options
 ---------------
@@ -342,12 +331,17 @@ Datasets
 - ``--eval_dataset``: Dataset names or paths for evaluation
 
 
-RL Algorithms: PPO, REINFORCE++, GRPO, RLOO (Single-Turn Agent Mode)
----------------------------------------------------------------------
+RL Algorithms: PPO, REINFORCE++, GRPO, RLOO
+--------------------------------------------
 
-**All RL algorithms in OpenRLHF use the same agent execution pipeline**. The algorithms are **decoupled from the execution mode**—you can use any algorithm (PPO, REINFORCE++, GRPO, RLOO) with single-turn or multi-turn agent execution.
+**Key Design Principle**: RL algorithms are **completely decoupled** from agent execution modes.
 
-**Key Design**: RL algorithms are selected via ``--advantage_estimator`` flag, independent of the agent execution mode.
+- **Algorithm Selection**: Use ``--advantage_estimator`` flag (PPO, REINFORCE++, GRPO, RLOO)
+- **Execution Mode**: Use ``--agent_func_path`` (multi-turn) or default (single-turn)
+- **Independence**: Any algorithm works with any execution mode
+
+.. note::
+   REINFORCE++, GRPO, and other algorithms have **no relationship** with single-turn or multi-turn modes. They are orthogonal design dimensions that can be freely combined.
 
 Supported Algorithms
 ~~~~~~~~~~~~~~~~~~~~
@@ -461,16 +455,6 @@ Example Usage
 
 .. tip::
    **For reasoning tasks (RLVR)**: Use ``--advantage_estimator reinforce_baseline`` for REINFORCE++-baseline—it's robust to different reward scales.
-
-.. note::
-   **Algorithm Selection**: Change ``--advantage_estimator`` to switch algorithms:
-   
-   - ``gae``: PPO (default, uses critic network)
-   - ``reinforce``: REINFORCE++
-   - ``reinforce_baseline``: REINFORCE++-baseline (best for RLVR)
-   - ``rloo``: RLOO
-   - ``group_norm``: GRPO
-   - ``dr_grpo``: Dr. GRPO
 
 Options
 

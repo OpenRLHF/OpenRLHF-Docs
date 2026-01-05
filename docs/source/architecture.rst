@@ -3,11 +3,6 @@ Architecture Foundation: Ray + vLLM Distribution
 
 OpenRLHF is **the first RLHF framework** built on Ray + vLLM distributed architecture, orchestrating multiple components across GPUs efficiently.
 
-.. image:: _static/openrlhf-arch.png
-   :alt: OpenRLHF Architecture
-   :align: center
-   :width: 700px
-
 Core Infrastructure Components
 -------------------------------
 

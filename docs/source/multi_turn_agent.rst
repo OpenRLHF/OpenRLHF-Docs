@@ -353,16 +353,7 @@ See the `NeMo Gym documentation <https://github.com/NVIDIA-NeMo/Gym>`_ and `Open
 Algorithm Compatibility
 -----------------------
 
-All multi-turn agent implementations work with **any RL algorithm**. Simply change ``--advantage_estimator``:
-
-- ``gae``: PPO (default, uses critic network)
-- ``reinforce``: REINFORCE++
-- ``reinforce_baseline``: REINFORCE++-baseline (recommended for reasoning)
-- ``rloo``: RLOO
-- ``group_norm``: GRPO
-- ``dr_grpo``: Dr. GRPO
-
-See :doc:`rl` for algorithm details.
+All multi-turn agent implementations work with **any RL algorithm**. Switch algorithms via ``--advantage_estimator``. See :doc:`agent_paradigm` for available algorithms and :doc:`rl` for detailed usage.
 
 Example Use Cases
 -----------------

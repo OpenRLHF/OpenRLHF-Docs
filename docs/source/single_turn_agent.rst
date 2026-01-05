@@ -352,14 +352,5 @@ Example: Code Execution Reward
 Algorithm Compatibility
 ------------------------
 
-All custom reward approaches (remote RM or custom functions) work with **any RL algorithm**. Simply change ``--advantage_estimator``:
-
-- ``gae``: PPO (default)
-- ``reinforce``: REINFORCE++
-- ``reinforce_baseline``: REINFORCE++-baseline (recommended for reasoning)
-- ``rloo``: RLOO
-- ``group_norm``: GRPO
-- ``dr_grpo``: Dr. GRPO
-
-See :doc:`rl` for algorithm details.
+All custom reward approaches (remote RM or custom functions) work with **any RL algorithm**. Switch algorithms via ``--advantage_estimator``. See :doc:`agent_paradigm` for available algorithms and :doc:`rl` for detailed usage.
 

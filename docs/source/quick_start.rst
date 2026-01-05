@@ -46,10 +46,12 @@ OpenRLHF leverages Ray for distributed scheduling and vLLM for high-performance 
 
 **🎯 Unified Agent-Based Paradigm**
 
-All training runs through a consistent agent execution pipeline:
+All training runs through a consistent agent execution pipeline with two independent dimensions:
 
-- **Single-Turn Mode** (Default): One-shot generation per prompt—covers 99% of use cases
-- **Multi-Turn Mode** (Advanced): Multi-step interactions with environment feedback
+- **Execution Modes**: Single-Turn (default) or Multi-Turn (advanced)
+- **RL Algorithms**: PPO, REINFORCE++, GRPO, RLOO (via ``--advantage_estimator``)
+
+**Key Point**: These two dimensions are **completely decoupled**—any algorithm works with any mode.
 
 See :doc:`agent_paradigm` for comprehensive overview.
 
@@ -213,17 +215,10 @@ All RL training uses the **unified agent execution pipeline**. The following exa
       --use_wandb {wandb_token}
 
 .. note::
-   **Agent Execution**: This uses **single-turn agent mode** (default). The same command works for all RL algorithms—just change ``--advantage_estimator``:
-   
-   - ``gae`` (default): PPO
-   - ``reinforce``: REINFORCE++
-   - ``reinforce_baseline``: REINFORCE++-baseline (best for reasoning)
-   - ``rloo``: RLOO
-   - ``group_norm``: GRPO
-   - ``dr_grpo``: Dr. GRPO
+   **Agent Execution**: This uses **single-turn agent mode** (default). Switch algorithms via ``--advantage_estimator`` (see :doc:`agent_paradigm` for all options).
 
 .. tip::
-   **For reasoning tasks (RLVR)**: Use ``--advantage_estimator reinforce_baseline`` for best results.
+   **For reasoning tasks**: Use ``--advantage_estimator reinforce_baseline`` (REINFORCE++-baseline). See :doc:`rl` for algorithm details.
 
 .. tip::
    **Ray Environment Setup**: Let Ray auto-deploy with ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'``
