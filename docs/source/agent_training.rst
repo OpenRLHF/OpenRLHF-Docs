@@ -13,68 +13,6 @@ For the underlying design principles, see :doc:`agent_paradigm`.
    :local:
    :depth: 2
 
-Common Options (Shared Across Trainers)
----------------------------------------
-
-We provide launch scripts for supported algorithms in the `examples/scripts <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples/scripts>`_ directory.
-
-Training
-~~~~~~~~
-
-- ``--zero_stage``: DeepSpeed ZeRO Stage
-- ``--adam_offload``: Offload the Adam Optimizer to CPU
-- ``--adam_betas``: Adam betas, default value is ``(0.9, 0.95)``
-- ``--overlap_comm``: Enable backward & gradient overlap_comm for Deepspeed (overlap_comm uses 4.5x the allgather_bucket_size and reduce_bucket_size values.)
-- ``--bf16``: Enable bfloat16
-- ``--attn_implementation``: Attention implementation (e.g., eager, flash_attention_2, flash_attention_3, kernels-community/vllm-flash-attn3)
-- ``--gradient_checkpointing``: Enable Gradient Checkpointing
-- ``--save_path``: Final HuggingFace model save path
-- ``--use_wandb``: Set to ``{wandb_token}`` or ``True`` with shell command ``wandb login``
-- ``--use_tensorboard``: Set to ``{tensorboard logs path}``
-- ``--learning_rate``: Learning Rate
-- ``--l2``: Weight Decay
-- ``--lr_scheduler``: Learning Rate Scheduler
-- ``--max_norm``: Gradient clipping
-- ``--micro_train_batch_size``: Batch size per GPU for training
-- ``--train_batch_size``: Global training batch size
-- ``--aux_loss_coef``: Balancing loss coefficient for MoE
-- ``--max_epoch``: Training epochs
-- ``--lr_warmup_ratio``: Warmup ratio of the learning rate
-- ``--use_liger_kernel``: Use Liger Kernel
-- ``--ds_tensor_parallel_size``: DeepSpeed Tensor Parallel Size (AutoTP), only used when ``--zero_stage 0 / 1 / 2``
-
-Datasets
-~~~~~~~~
-
-- ``--dataset``: Dataset names or paths for training
-- ``--dataset_probs``: Dataset mixing probabilities
-- ``--eval_dataset``: Dataset names or paths for evaluation
-- ``--input_key``: Input JSON key for conversions
-- ``--apply_chat_template``: Use HuggingFace ``tokenizer.apply_chat_template``
-- ``--input_template``: Custom ``input_template`` (when not using ``tokenizer.apply_chat_template``), set to ``None`` to disable it. Such as ``$'User: {}\\nAssistant: '``.
-- ``--max_len``: Max length for the samples
-- ``--max_samples``: Max training samples
-- ``--packing_samples``: Packing samples using Flash Attention 2
-
-LoRA
-~~~~
-
-- ``--load_in_4bit``: Use QLoRA
-- ``--lora_rank``: Set to ``integer > 0`` to enable LoRA
-- ``--lora_dropout``: LoRA dropout for HuggingFace PEFT (LoRA)
-- ``--target_modules``: Target modules for HuggingFace PEFT (LoRA)
-
-If you use ``LoRA (Low-Rank Adaptation)``, ``OpenRLHF`` will not save the full weights by default instead of ``LoRA Adapter``. To continue in your task normally, you should combine the ``Adapter`` with weights of your base model
-
-.. code-block:: bash
-
-   python -m openrlhf.cli.lora_combiner \
-      --model_path meta-llama/Meta-Llama-3-8B \
-      --lora_path ./checkpoint/llama3-8b-rm \
-      --output_path ./checkpoint/llama-3-8b-rm-combined \
-      --is_rm \
-      --bf16
-
 .. _train_sft:
 
 Supervised Fine-tuning (SFT)
@@ -228,6 +166,9 @@ All RL training in OpenRLHF uses the **agent execution pipeline** (single-turn b
       --use_wandb {wandb_token}
 
 .. note::
+   The full Hybrid Engine (colocation) recipe is documented in :doc:`hybrid_engine`. Use that page as the canonical reference for ``--colocate_all_models``.
+
+.. note::
    - Ray + vLLM does not support LoRA currently
    - Use ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'`` to let Ray automatically deploy the environment
    - For AMD GPUs or GPU device index errors, set ``RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=1`` (NVIDIA) or ``RAY_EXPERIMENTAL_NOSET_ROCR_VISIBLE_DEVICES=1`` (AMD)
@@ -307,6 +248,8 @@ Launch the reward model server:
        --max_len 8192 \
        --batch_size 16
 
+See also the upstream example scripts directory: `examples/scripts <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples/scripts>`_.
+
 Using Remote Reward Model in Training
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -361,7 +304,7 @@ You provide a Python file via ``--agent_func_path``. It must implement an ``Agen
 
 
    class AgentInstance(AgentInstanceBase):
-       async def __init__(self, *args, **kwargs):
+       def __init__(self, *args, **kwargs):
            self.step_idx = 0
 
        async def reset(self, states: dict, **kwargs) -> dict:
@@ -464,4 +407,72 @@ External environments
 
 Multi-turn agents can wrap external evaluators/environments (e.g., game envs, execution-based code judges). For an end-to-end reference, see the upstream OpenRLHF examples and scripts.
 
+Useful upstream examples
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Async pipeline RLHF (``--async_train``): `train_reinforce_baseline_llama_ray_async.sh <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_llama_ray_async.sh>`_
+- Async agent RLHF (``--agent_func_path`` + async): `train_reinforce_baseline_llama_ray_agent_async.sh <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_llama_ray_agent_async.sh>`_
+- NeMo Gym integration: `train_reinforce_nemogym.sh <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_nemogym.sh>`_
+
+Common Options (Shared Across Trainers)
+---------------------------------------
+
+We provide launch scripts for supported algorithms in the `examples/scripts <https://github.com/OpenRLHF/OpenRLHF/tree/main/examples/scripts>`_ directory.
+
+Training
+~~~~~~~~
+
+- ``--zero_stage``: DeepSpeed ZeRO Stage
+- ``--adam_offload``: Offload the Adam Optimizer to CPU
+- ``--adam_betas``: Adam betas, default value is ``(0.9, 0.95)``
+- ``--overlap_comm``: Enable backward & gradient overlap_comm for Deepspeed (overlap_comm uses 4.5x the allgather_bucket_size and reduce_bucket_size values.)
+- ``--bf16``: Enable bfloat16
+- ``--attn_implementation``: Attention implementation (e.g., eager, flash_attention_2, flash_attention_3, kernels-community/vllm-flash-attn3)
+- ``--gradient_checkpointing``: Enable Gradient Checkpointing
+- ``--save_path``: Final HuggingFace model save path
+- ``--use_wandb``: Set to ``{wandb_token}`` or ``True`` with shell command ``wandb login``
+- ``--use_tensorboard``: Set to ``{tensorboard logs path}``
+- ``--learning_rate``: Learning Rate
+- ``--l2``: Weight Decay
+- ``--lr_scheduler``: Learning Rate Scheduler
+- ``--max_norm``: Gradient clipping
+- ``--micro_train_batch_size``: Batch size per GPU for training
+- ``--train_batch_size``: Global training batch size
+- ``--aux_loss_coef``: Balancing loss coefficient for MoE
+- ``--max_epoch``: Training epochs
+- ``--lr_warmup_ratio``: Warmup ratio of the learning rate
+- ``--use_liger_kernel``: Use Liger Kernel
+- ``--ds_tensor_parallel_size``: DeepSpeed Tensor Parallel Size (AutoTP), only used when ``--zero_stage 0 / 1 / 2``
+
+Datasets
+~~~~~~~~
+
+- ``--dataset``: Dataset names or paths for training
+- ``--dataset_probs``: Dataset mixing probabilities
+- ``--eval_dataset``: Dataset names or paths for evaluation
+- ``--input_key``: Input JSON key for conversions
+- ``--apply_chat_template``: Use HuggingFace ``tokenizer.apply_chat_template``
+- ``--input_template``: Custom ``input_template`` (when not using ``tokenizer.apply_chat_template``), set to ``None`` to disable it. Such as ``$'User: {}\\nAssistant: '``.
+- ``--max_len``: Max length for the samples
+- ``--max_samples``: Max training samples
+- ``--packing_samples``: Packing samples using Flash Attention 2
+
+LoRA
+~~~~
+
+- ``--load_in_4bit``: Use QLoRA
+- ``--lora_rank``: Set to ``integer > 0`` to enable LoRA
+- ``--lora_dropout``: LoRA dropout for HuggingFace PEFT (LoRA)
+- ``--target_modules``: Target modules for HuggingFace PEFT (LoRA)
+
+If you use ``LoRA (Low-Rank Adaptation)``, ``OpenRLHF`` will not save the full weights by default instead of ``LoRA Adapter``. To continue in your task normally, you should combine the ``Adapter`` with weights of your base model
+
+.. code-block:: bash
+
+   python -m openrlhf.cli.lora_combiner \
+      --model_path meta-llama/Meta-Llama-3-8B \
+      --lora_path ./checkpoint/llama3-8b-rm \
+      --output_path ./checkpoint/llama-3-8b-rm-combined \
+      --is_rm \
+      --bf16
 
