@@ -69,6 +69,7 @@ OpenRLHF supports the hybrid engine, allowing all models and vLLM engines to sha
       --normalize_reward \
       --gradient_checkpointing \
       --packing_samples \
+      --use_dynamic_batch \
       --vllm_sync_backend nccl \
       --enforce_eager \
       --vllm_enable_sleep \
