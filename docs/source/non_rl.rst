@@ -75,7 +75,7 @@ Direct Preference Optimization (DPO)
 
 
 Options
-
+~~~~~~~
 - ``--chosen_key`` JSON dataset key for chosen conversions
 - ``--rejected_key`` JSON dataset key for rejected conversions
 - ``--ref_offload`` Offload Reference Model to CPU
@@ -115,7 +115,7 @@ Kahneman-Tversky Optimization (KTO)
       --use_wandb {wandb_token}
 
 Options
-
+~~~~~~~
 - ``--input_key``: JSON dataset key for the instructions
 - ``--output_key``: JSON dataset key for the responses
 - ``--label_key``: JSON dataset key for the label
@@ -156,7 +156,7 @@ PRM training is a supervised workflow that learns **process-level reward signals
       --reward_tokens "+" "-"
 
 Options
-^^^^^^^
+~~~~~~~
 
 - ``--input_key``: JSON dataset key for input text
 - ``--label_key``: JSON dataset key for reward label
