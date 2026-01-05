@@ -1,13 +1,26 @@
 Hybrid Engine
-=====
+=============
 
+Overview
+--------
 
-Ray RLHF using Hybrid Engine
-------------
+The **Hybrid Engine** allows all models (Actor, Critic, Reward, Reference) and vLLM engines to **share GPUs**, maximizing resource utilization and avoiding idle time during different phases of training.
+
+**Key Benefits**:
+
+- **Maximum GPU utilization**: No idle GPUs during generation or training
+- **Memory efficiency**: Share memory between models
+- **Performance**: Better throughput than distributed mode
+- **Simplicity**: Fewer GPUs needed for full RLHF pipeline
+
+See :doc:`agent_paradigm` for architecture overview and :doc:`performance` for tuning guide.
 
 .. _hybrid_engine:
 
-OpenRLHF also supports the hybrid engine, allowing all models and vLLM engines to share the GPUs to avoid resource idling.
+Ray RLHF using Hybrid Engine
+-----------------------------
+
+OpenRLHF supports the hybrid engine, allowing all models and vLLM engines to share the GPUs to avoid resource idling.
 
 .. code-block:: bash
    
@@ -61,10 +74,83 @@ OpenRLHF also supports the hybrid engine, allowing all models and vLLM engines t
       --vllm_enable_sleep \
       --deepspeed_enable_sleep
 
+.. note::
+   - **Agent Execution**: Works with both single-turn and multi-turn modes (see :doc:`single_turn_agent` and :doc:`multi_turn_agent`)
+   - **Algorithm Compatibility**: Works with all RL algorithms (change ``--advantage_estimator`` to switch)
+
 Options
+-------
+
+Core Options
 
 - ``--colocate_all_models``: Colocate vLLM Engines, Actor, Reference, Reward and Critic Model nodes (Hybrid Engine)
-- ``--vllm_gpu_memory_utilization``: vLLM gpu_memory_utilization (larger value means more memory usage and better performance)
-- ``--vllm_enable_sleep``: Enable sleep mode for vLLM when using --colocate_all_models
-- ``--deepspeed_enable_sleep``: Enable sleep mode for deepspeed engines when using --colocate_all_models
-- ``--enforce_eager``: Disable cuda graph for vLLM
+- ``--vllm_gpu_memory_utilization``: vLLM gpu_memory_utilization (larger value means more memory usage and better performance). Recommended: ``0.5`` for 8x A100
+- ``--vllm_enable_sleep``: Enable sleep mode for vLLM when using ``--colocate_all_models``
+- ``--deepspeed_enable_sleep``: Enable sleep mode for DeepSpeed engines when using ``--colocate_all_models``
+- ``--enforce_eager``: Disable CUDA graph for vLLM (required for some setups)
+
+Additional Options
+
+- ``--colocate_critic_reward``: Colocate Critic and Reward models (use when not using ``--colocate_all_models``)
+- ``--colocate_actor_ref``: Colocate Actor and Reference models (use when not using ``--colocate_all_models``)
+- ``--ref_reward_offload``: Offload Reference and Reward models to CPU during training
+
+When to Use Hybrid Engine
+--------------------------
+
+✅ **Use Hybrid Engine when**:
+
+- You have sufficient GPU memory
+- You want maximum GPU utilization
+- You have 8+ GPUs available
+- You're training models up to 70B parameters
+
+❌ **Don't use Hybrid Engine when**:
+
+- Hitting OOM errors
+- Training very large models (>70B) with limited memory
+- Need simplest possible setup
+
+Memory Requirements
+-------------------
+
+**Rule of Thumb**: ``vllm_gpu_memory_utilization`` + Model Memory < 1.0
+
+Example for 8x A100 (80GB):
+
+- 8B model: ``--vllm_gpu_memory_utilization 0.6``
+- 13B model: ``--vllm_gpu_memory_utilization 0.5``
+- 34B model: ``--vllm_gpu_memory_utilization 0.4``
+- 70B model: Use more GPUs or distributed mode
+
+Performance Tips
+----------------
+
+1. **Start Conservative**: Begin with ``--vllm_gpu_memory_utilization 0.5``
+2. **Monitor Memory**: Watch for OOM errors
+3. **Increase Gradually**: Increase to 0.6 or 0.7 if stable
+4. **Enable Sleep Modes**: Always use ``--vllm_enable_sleep`` and ``--deepspeed_enable_sleep``
+5. **Use NCCL**: Set ``--vllm_sync_backend nccl`` for faster weight sync
+
+Troubleshooting
+---------------
+
+**OOM Errors**
+
+- ✅ Reduce ``--vllm_gpu_memory_utilization`` (0.5 → 0.4)
+- ✅ Reduce batch sizes
+- ✅ Disable ``--colocate_all_models`` and use distributed mode
+
+**Low Throughput**
+
+- ✅ Increase ``--vllm_gpu_memory_utilization`` (0.5 → 0.6)
+- ✅ Increase batch sizes
+- ✅ Enable ``--packing_samples``
+
+**vLLM Hangs**
+
+- ✅ Use ``--enforce_eager``
+- ✅ Set ``--vllm_sync_backend nccl``
+- ✅ Check CUDA/NCCL versions
+
+See :doc:`performance` for comprehensive tuning guide.

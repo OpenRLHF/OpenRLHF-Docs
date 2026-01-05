@@ -1,6 +1,19 @@
 Reinforcement Learning from Human Feedback (RLHF)
 =====
 
+Overview
+--------
+
+All RL training in OpenRLHF runs through the **unified agent execution pipeline**. Whether you're doing standard PPO or multi-turn reasoning, the training follows a consistent agent-based paradigm that ensures **token-level consistency** between generation and training.
+
+**Key Concepts**:
+
+- **Agent Execution Modes**: Single-turn (default, 99% use cases) or Multi-turn (advanced interactions)
+- **Algorithm Independence**: All RL algorithms (PPO, REINFORCE++, GRPO, RLOO) work with both execution modes
+- **Token-in-Token-out**: Zero text-level mismatches, perfect consistency
+
+See :doc:`agent_paradigm` for detailed architecture overview.
+
 Common Options
 ---------------
 
@@ -193,10 +206,14 @@ Options
 
 .. _rayppo:
 
-PPO with Ray (vLLM)
-------------
+RL Training with Ray and vLLM (Single-Turn Agent Mode)
+-------------------------------------------------------
 
-To improve RLHF training speed or support 70B models, we can use the ``PPO with Ray and vLLM acceleration``
+All RL training in OpenRLHF uses the **agent execution pipeline**. The following example shows **single-turn agent execution** (default mode), which covers 99% of use cases including standard RLHF training.
+
+**Single-Turn Mode**: One-shot generation per prompt, works with all RL algorithms (PPO, REINFORCE++, GRPO, RLOO). Perfect for standard RLHF training with reward models or custom reward functions.
+
+To improve RLHF training speed or support 70B models, we use ``Ray and vLLM acceleration`` with the agent-based paradigm
 
 .. code-block:: bash
    
@@ -248,15 +265,16 @@ To improve RLHF training speed or support 70B models, we can use the ``PPO with 
       --use_wandb {wandb_token}
    
 
-.. note:: It is recommended to use the Hybrid Engine or asynchronous training mode to avoid resource idling.
-.. note:: Ray + vLLM does not supports LoRA currently. You can also use ``setup_commands`` to let Ray automatically deploy the environment, such as ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'``
-.. note:: If you want to run on AMD GPUs, or for whatever reason you encounter an error related to index out of range when deepspeed sets up the GPU devices, you can try to set the environment variable `RAY_EXPERIMENTAL_NOSET_*_VISIBLE_DEVICES <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/trainer/ray/utils.py>`_ as a workaround.
-.. code-block:: bash
+.. note:: 
+   **Agent Execution**: This example uses **single-turn agent execution** (default mode). The same command works for all RL algorithms—just change ``--advantage_estimator``. See :doc:`agent_paradigm` for details.
 
-   # For NVIDIA GPUs:
-   export RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=1
-   # For AMD GPUs:
-   export RAY_EXPERIMENTAL_NOSET_ROCR_VISIBLE_DEVICES=1
+.. note:: 
+   **Performance**: Use the Hybrid Engine (:doc:`hybrid_engine`) or asynchronous training mode (:doc:`multi_turn_agent`) to avoid resource idling.
+
+.. note:: 
+   - Ray + vLLM does not support LoRA currently
+   - Use ``--runtime-env-json='{"setup_commands": ["pip install openrlhf[vllm]"]}'`` to let Ray automatically deploy the environment
+   - For AMD GPUs or GPU device index errors, set ``RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=1`` (NVIDIA) or ``RAY_EXPERIMENTAL_NOSET_ROCR_VISIBLE_DEVICES=1`` (AMD)
 
 Options
 
@@ -324,17 +342,75 @@ Datasets
 - ``--eval_dataset``: Dataset names or paths for evaluation
 
 
-REINFORCE++/GRPO/RLOO with Ray (vLLM)
-------------
+RL Algorithms: PPO, REINFORCE++, GRPO, RLOO (Single-Turn Agent Mode)
+---------------------------------------------------------------------
 
-In REINFORCE-like algorithms, the value network is not used; instead, advantage is calculated directly by normalizing the reward, which can save some computational resources.
-We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment method.
+**All RL algorithms in OpenRLHF use the same agent execution pipeline**. The algorithms are **decoupled from the execution mode**—you can use any algorithm (PPO, REINFORCE++, GRPO, RLOO) with single-turn or multi-turn agent execution.
 
-- REINFORCE++ incorporates ``key optimization techniques from PPO`` into REINFORCE while completely eliminating the need for a critic network.
-- `REINFORCE++-baseline <https://medium.com/@janhu9527/reinforce-baseline-is-all-you-need-in-rlvr-f5406930aa85>`_ leverages the ``mean reward across multiple samples generated from the same prompt`` as a baseline for reward reshaping, then apply global advantage normalization.
-- RLOO implementation in OpenRLHF enhances the original algorithm by introducing per-token KL reward and adopting the PPO-clip loss mechanism.
-- GRPO functionality can be activated by configuring ``--advantage_estimator group_norm`` along with K3 KL loss.
-- Dr. GRPO represents a variant that eliminates the ``/std`` normalization present in GRPO.
+**Key Design**: RL algorithms are selected via ``--advantage_estimator`` flag, independent of the agent execution mode.
+
+Supported Algorithms
+~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 30 25
+
+   * - Algorithm
+     - ``--advantage_estimator``
+     - Key Feature
+     - Best Use Case
+   * - **PPO**
+     - ``gae`` (default)
+     - Full critic network
+     - Stable training, proven results
+   * - **REINFORCE++**
+     - ``reinforce``
+     - PPO tricks without critic
+     - Efficient training, less memory
+   * - **REINFORCE++-baseline**
+     - ``reinforce_baseline``
+     - Mean reward baseline
+     - Reasoning tasks (RLVR), robust to reward scales
+   * - **RLOO**
+     - ``rloo``
+     - Per-token KL + PPO-clip
+     - Multi-sample training
+   * - **GRPO**
+     - ``group_norm``
+     - Group normalization
+     - Batch-based training
+   * - **Dr. GRPO**
+     - ``dr_grpo``
+     - Simplified GRPO
+     - Removes local /std norm
+
+Algorithm Details
+~~~~~~~~~~~~~~~~~
+
+**REINFORCE++**
+
+- We proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment method
+- Incorporates ``key optimization techniques from PPO`` into REINFORCE while completely eliminating the need for a critic network
+- Saves computational resources and memory
+
+**REINFORCE++-baseline**
+
+- `REINFORCE++-baseline <https://medium.com/@janhu9527/reinforce-baseline-is-all-you-need-in-rlvr-f5406930aa85>`_ leverages the ``mean reward across multiple samples generated from the same prompt`` as a baseline for reward reshaping
+- Then applies global advantage normalization
+- **Best for reasoning tasks (RLVR)**: Robust to different reward scales
+
+**RLOO**
+
+- OpenRLHF's RLOO implementation enhances the original algorithm by introducing per-token KL reward and adopting the PPO-clip loss mechanism
+
+**GRPO and Dr. GRPO**
+
+- GRPO functionality can be activated by configuring ``--advantage_estimator group_norm`` along with K3 KL loss
+- Dr. GRPO represents a variant that eliminates the ``/std`` normalization present in GRPO
+
+Example Usage
+~~~~~~~~~~~~~
 
 .. code-block:: bash
    
@@ -344,6 +420,7 @@ We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment
    # if you want to launch ray on more nodes, use
    ray start --address {MASTER-NODE-ADDRESS}:6379  --num-gpus 8
 
+   # Example: REINFORCE++-baseline (recommended for reasoning tasks)
    ray job submit --address="http://127.0.0.1:8265" \
       --runtime-env-json='{"working_dir": "/openrlhf"}' \
       -- python3 -m openrlhf.cli.train_ppo_ray \
@@ -382,11 +459,27 @@ We also proposed the `REINFORCE++ <https://arxiv.org/abs/2501.03262>`_ alignment
       --gradient_checkpointing \
       --use_wandb {wandb_token}
 
+.. tip::
+   **For reasoning tasks (RLVR)**: Use ``--advantage_estimator reinforce_baseline`` for REINFORCE++-baseline—it's robust to different reward scales.
+
+.. note::
+   **Algorithm Selection**: Change ``--advantage_estimator`` to switch algorithms:
+   
+   - ``gae``: PPO (default, uses critic network)
+   - ``reinforce``: REINFORCE++
+   - ``reinforce_baseline``: REINFORCE++-baseline (best for RLVR)
+   - ``rloo``: RLOO
+   - ``group_norm``: GRPO
+   - ``dr_grpo``: Dr. GRPO
+
 Options
 
-- ``--advantage_estimator`` set to ``gae`` (for PPO), ``reinforce``, ``rloo``, ``reinforce_baseline`` or ``group_norm`` (for GRPO) or ``dr_grpo`` (for DR-GRPO)
-- ``--use_kl_loss`` Add KL loss (required for GRPO) into policy loss and disable KL in reward
+Algorithm Selection
+
+- ``--advantage_estimator``: Set to ``gae`` (PPO), ``reinforce`` (REINFORCE++), ``reinforce_baseline`` (REINFORCE++-baseline), ``rloo`` (RLOO), ``group_norm`` (GRPO), or ``dr_grpo`` (Dr. GRPO)
+- ``--use_kl_loss``: Add KL loss (required for GRPO) into policy loss and disable KL in reward
 - ``--dynamic_filtering``: Enable dynamic filtering for GRPO/REINFORCE++-baseline
 - ``--dynamic_filtering_reward_range``: Dynamic filtering reward range for GRPO/REINFORCE++-baseline, the default value is ``(0, 1)`` (both exclusive)
+- ``--init_kl_coef 0``: Disable reference model (no KL penalty)
 
 

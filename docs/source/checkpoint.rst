@@ -51,7 +51,7 @@ SFT
       --use_wandb {wandb_token}
       
 
-Ray PPO with vLLM
+RL Training with Ray and vLLM (Agent Execution)
 
 .. code-block:: bash
    
