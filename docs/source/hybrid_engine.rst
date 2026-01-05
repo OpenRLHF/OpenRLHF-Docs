@@ -103,13 +103,12 @@ When to Use Hybrid Engine
 - You have sufficient GPU memory
 - You want maximum GPU utilization
 - You have 8+ GPUs available
-- You're training models up to 70B parameters
+- Need simplest possible setup
 
 ❌ **Don't use Hybrid Engine when**:
 
 - Hitting OOM errors
-- Training very large models (>70B) with limited memory
-- Need simplest possible setup
+- Training very large models with limited memory
 
 Memory Requirements
 -------------------
@@ -167,12 +166,13 @@ Troubleshooting
 - ✅ Reduce ``--vllm_gpu_memory_utilization`` (0.5 → 0.4)
 - ✅ Reduce batch sizes
 - ✅ Disable ``--colocate_all_models`` and use distributed mode
+- ✅ Enable ``--packing_samples``
+
 
 **Low Throughput**
 
 - ✅ Increase ``--vllm_gpu_memory_utilization`` (0.5 → 0.6)
 - ✅ Increase batch sizes
-- ✅ Enable ``--packing_samples``
 
 **vLLM Hangs**
 
