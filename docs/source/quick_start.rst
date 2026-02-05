@@ -22,7 +22,7 @@ To use OpenRLHF, first launch the docker container (**Recommended**) and ``pip i
 .. code-block:: bash
 
    # Launch the docker container
-   docker run --runtime=nvidia -it --rm --shm-size="10g" --cap-add=SYS_ADMIN -v $PWD:/openrlhf nvcr.io/nvidia/pytorch:25.02-py3 bash
+   docker run --runtime=nvidia -it --rm --shm-size="10g" --cap-add=SYS_ADMIN -v $PWD:/openrlhf nvcr.io/nvidia/pytorch:25.11-py3 bash
    pip uninstall xgboost transformer_engine flash_attn pynvml opencv-python-headless -y
 
    # pip install
