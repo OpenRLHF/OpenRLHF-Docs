@@ -3,20 +3,19 @@ Performance Tuning
 
 This guide collects the knobs that matter most for throughput and memory. For hybrid-engine specifics see :doc:`hybrid_engine`; for error triage see :doc:`troubleshooting`.
 
-**Rule of thumb**: maximize GPU utilization without running out of memory. Start from a known-good recipe (see ``examples/scripts``) and adjust one knob at a time.
+**Rule of thumb**: start from a known-good recipe (see ``examples/scripts``) and adjust one knob at a time.
 
-Resource allocation (distributed mode)
---------------------------------------
+Choosing a deployment mode
+--------------------------
 
-Recommended ratio: ``vLLM : Actor : Critic = 1 : 1 : 1``.
+Pick based on what you're optimizing for:
 
-Example — 70B model on 48×A100:
+- **Max throughput → async training** (``--async_train``). Rollout and training overlap through a bounded queue; tune the degree of asynchrony via ``--async_queue_size`` (start at ``1`` and raise only if rollout bottlenecks training). Add ``--partial_rollout`` to overlap weight sync with generation. See :doc:`async_training`.
+- **Max stability → Hybrid Engine** (``--colocate_all_models --vllm_enable_sleep --deepspeed_enable_sleep``). Fully on-policy, excellent GPU utilization through role-swapping on shared GPUs. The safe default for convergence-sensitive workloads. See :doc:`hybrid_engine`.
+- **Distributed mode** (separate GPU groups for vLLM / Actor / Critic) is a fallback for very large models or mixed-hardware clusters where colocation isn't viable. There is no single recommended resource ratio — size each group to its own memory and compute needs; the older ``1:1:1`` rule of thumb is obsolete.
 
-- 16 GPUs → vLLM engines
-- 16 GPUs → Actor
-- 16 GPUs → Critic
-
-For smaller models, the Hybrid Engine (``--colocate_all_models``) is usually preferable.
+.. note::
+   The ``vLLM : Actor : Critic = 1 : 1 : 1`` guidance from older OpenRLHF releases is no longer recommended. Prefer async or the Hybrid Engine; fall back to tuned distributed allocation only when colocation isn't possible.
 
 Speed knobs
 -----------
@@ -37,9 +36,15 @@ Speed knobs
    * - **Dynamic batch**
      - ``--use_dynamic_batch`` + ``--train_max_tokens_per_gpu`` / ``--rollout_max_tokens_per_gpu``
      - Variable sequence lengths — better utilization than fixed micro-batches.
+   * - **Async training**
+     - ``--async_train``
+     - Fastest path. Tune the degree of asynchrony with ``--async_queue_size`` (start at ``1``). Validate convergence in sync mode first.
+   * - **Partial rollout**
+     - ``--partial_rollout``
+     - With ``--async_train`` — overlap generation with weight sync. Pair with ``--enable_vllm_is_correction``.
    * - **Hybrid Engine**
      - ``--colocate_all_models`` + ``--vllm_enable_sleep`` + ``--deepspeed_enable_sleep``
-     - Enough GPU memory — usually the best throughput.
+     - Most stable high-throughput option. Best choice when off-policy noise is a concern.
    * - **Overlap comm**
      - ``--overlap_comm``
      - Enough GPU memory — overlap backward and gradient reduce.
@@ -49,12 +54,6 @@ Speed knobs
    * - **Prefix caching**
      - vLLM config
      - ``--n_samples_per_prompt > 1`` — reuse shared prompt KV.
-   * - **Async training**
-     - ``--async_train``
-     - Throughput critical and convergence already validated — more off-policy.
-   * - **Partial rollout**
-     - ``--partial_rollout``
-     - With ``--async_train`` — overlap generation with weight sync.
 
 Memory management
 -----------------
