@@ -1,14 +1,9 @@
 Design Paradigm: Agent-Based Execution
-=======================================
+======================================
 
-**On top of the Ray distributed architecture**, OpenRLHF is **the first RLHF framework** to implement a **unified agent-based paradigm**. Every training run—whether standard PPO or complex multi-turn reasoning—follows a consistent agent execution pipeline.
+OpenRLHF unifies generation and training under a single **token-in-token-out** agent pipeline. Every training run — standard PPO, GRPO, or a multi-turn reasoning loop — goes through the same ``AgentExecutorBase`` interface. This eliminates text-level mismatches between sampling and training and lets you switch execution modes without touching the RL algorithm.
 
-Why Agent-Based?
-----------------
-
-OpenRLHF **unifies generation and training through token-in-token-out agent execution**, ensuring perfect consistency, easy single/multi-turn extension, and zero text-level mismatches.
-
-Agent Architecture
+Agent architecture
 ------------------
 
 .. code-block:: text
@@ -25,7 +20,7 @@ Agent Architecture
       ┌──────────┴──────────┐   ┌─────────┴──────────┐
       ↓                     ↓   ↓                    ↓
   Standard RLHF      Custom Reward   Multi-Step    External Env
-  (One-shot gen)     Function      Reasoning     (NeMo Gym)
+  (One-shot gen)     Function      Reasoning     (OpenAI Agent Server)
       ↓                     ↓           ↓                ↓
       └─────────────────────┴───────────┴────────────────┘
                               │
@@ -39,93 +34,44 @@ Agent Architecture
                     │  GRPO, RLOO, etc. │
                     └───────────────────┘
 
-Core Design Principles
-----------------------
+Core principles
+---------------
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 40 40
+   :widths: 25 75
 
    * - Principle
-     - Description
-     - Benefit
+     - What it means
    * - **Token-in-Token-out**
-     - All sampling produces token-level trajectories
-     - Zero text-level mismatch
-   * - **Unified Interface**
-     - Same ``AgentExecutorBase`` API for all modes
-     - Switch modes with one flag
-   * - **Algorithm-Agnostic**
-     - RL algorithms (PPO, REINFORCE++, etc.) are decoupled from agent executors
-     - Any algorithm works with any mode
+     - All sampling produces token-level trajectories — no text re-tokenization between generation and training.
+   * - **Unified interface**
+     - Single-turn and multi-turn share the same ``AgentExecutorBase`` API; switch modes with one flag.
+   * - **Algorithm-agnostic**
+     - RL algorithms (PPO, REINFORCE++, GRPO, RLOO, ...) are decoupled from execution mode — any algorithm works with any mode.
    * - **Extensible**
-     - Plug in custom rewards/environments easily
-     - Rapid experimentation
-   * - **Production-Ready**
-     - Sync/Async/Hybrid Engine support
-     - From research to deployment
+     - Plug in custom reward functions (single-turn) or environments (multi-turn) via a Python file.
 
-Two Execution Modes (Orthogonal to Algorithms)
------------------------------------------------
+Two execution modes (orthogonal to algorithms)
+----------------------------------------------
 
-**Important**: Execution modes are **completely independent** from RL algorithms. You can use **any algorithm** (PPO, REINFORCE++, GRPO, RLOO) with **any execution mode** (single-turn or multi-turn).
+Execution mode and RL algorithm are independent axes. Any combination is valid.
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 40 20 20
+   :widths: 20 50 30
 
    * - Mode
-     - Use Cases
-     - Configuration
-     - Complexity
-   * - **Single-Turn**
-     - Standard RLHF, custom reward functions
-     - Default or ``--remote_rm_url``
-     - ⭐ Default
+     - Use cases
+     - How to select
+   * - **Single-Turn** (default)
+     - Standard RLHF, RLVR, custom reward functions
+     - Default; optionally ``--remote_rm_url``
    * - **Multi-Turn**
-     - Multi-step reasoning, interactive environments
-     - ``--agent_func_path``
-     - ⭐⭐ Advanced
+     - Multi-step reasoning, interactive environments, tool use
+     - ``--agent_func_path /path/to/agent.py``
 
-**Example Combinations** (all valid):
-- PPO + Single-Turn
-- PPO + Multi-Turn
-- REINFORCE++ + Single-Turn
-- REINFORCE++ + Multi-Turn
-- GRPO + Single-Turn
-- GRPO + Multi-Turn
-- (Any algorithm + Any mode)
-
-See :doc:`agent_training` for the consolidated training + execution guide (single-turn and multi-turn).
-
-Key Advantages
---------------
-
-1. **Consistency**: Token-level trajectories ensure perfect alignment between generation and training
-2. **Flexibility**: Switch between single-turn and multi-turn with a single flag
-3. **Algorithm Independence**: Use any RL algorithm with any execution mode
-4. **Extensibility**: Easy to implement custom rewards and environments
-5. **Production Ready**: Supports synchronous, asynchronous, and hybrid engine modes
-
-How to Use
-----------
-
-**Selecting Execution Mode**:
-
-- **Single-Turn** (default): No extra flag needed, or use ``--remote_rm_url`` for custom rewards
-- **Multi-Turn**: Set ``--agent_func_path /path/to/agent.py``
-
-**Selecting RL Algorithm**:
-
-Use ``--advantage_estimator`` flag:
-
-- ``gae`` (default): PPO
-- ``reinforce``: REINFORCE++
-- ``reinforce_baseline``: REINFORCE++-baseline  
-- ``rloo``: RLOO
-- ``group_norm``: GRPO
-- ``dr_grpo``: Dr. GRPO
+Algorithm is selected via ``--advantage_estimator`` (``gae`` / ``reinforce`` / ``reinforce_baseline`` / ``rloo`` / ``group_norm`` / ``dr_grpo``). See :doc:`agent_training` for the full recipe catalog, the algorithm table, and code templates for both modes.
 
 .. warning::
-   When implementing custom agents, always follow the **token-in-token-out principle** to ensure consistency between sampling and training.
-
+   When implementing custom agents, always follow the **token-in-token-out principle** to keep sampling and training consistent.

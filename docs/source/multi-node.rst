@@ -65,7 +65,7 @@ Here is an example
     "pip install ray[default]==$RAY_VERSION \
     && /root/.local/bin/ray job submit --address=http://localhost:8265 \
         --runtime-env-json='{\"working_dir\": \"/openrlhf\", \"pip\": \"/openrlhf/requirements.txt\"}' \
-        -- python3 openrlhf.cli.train_ppo_ray \
+        -- python3 -m openrlhf.cli.train_ppo_ray \
         --ref_num_nodes 1 \
         --ref_num_gpus_per_node 4 \
         --reward_num_nodes 1 \
@@ -87,10 +87,9 @@ Here is an example
         --rollout_batch_size 1024 \
         --max_samples 100000 \
         --max_epochs 1 \
-        --prompt_max_len 1024 \
-        --generate_max_len 1024 \
+        --max_len 2048 \
         --zero_stage 3 \
-        --bf16 \
+        --param_dtype bf16 \
         --actor_learning_rate 5e-7 \
         --critic_learning_rate 9e-6 \
         --init_kl_coef 0.01 \
@@ -101,7 +100,6 @@ Here is an example
         --vllm_sync_backend nccl \
         --packing_samples \
         --adam_offload \
-        --attn_implementation flash_attention_2 \
         --gradient_checkpointing \
         --use_wandb {wandb_token}" &>> ${JOBLOG}
 
@@ -143,7 +141,7 @@ Here is an example for DPO
         --train_batch_size 256 \
         --micro_train_batch_size 1 \
         --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
-        --bf16 \
+        --param_dtype bf16 \
         --max_epochs 1 \
         --max_len 8192 \
         --zero_stage 3 \
@@ -169,7 +167,7 @@ Here is an example for DPO
 
     srun --container-image="$IMAGE_NAME" --container-mounts="$MOUNT" bash -c \
         "cd /openrlhf; pip install . ; torchrun \
-        torchrun --nproc_per_node $GPUS_PER_NODE --nnodes $SLURM_NNODES --node_rank $SLURM_PROCID \
+        --nproc_per_node $GPUS_PER_NODE --nnodes $SLURM_NNODES --node_rank $SLURM_PROCID \
         --master_addr $MASTER_ADDR --master_port $MASTER_PORT -m ${training_commands}" &>> ${JOBLOG}
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') Job ${SLURM_JOB_ID} stopped ..." &>> ${JOBLOG}

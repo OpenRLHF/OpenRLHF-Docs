@@ -12,7 +12,7 @@ Training
 - ``--adam_offload``: Offload the Adam Optimizer to CPU
 - ``--adam_betas``: Adam betas, default value is ``(0.9, 0.95)``
 - ``--overlap_comm``: Enable backward & gradient overlap_comm for Deepspeed (overlap_comm uses 4.5x the allgather_bucket_size and reduce_bucket_size values.)
-- ``--bf16``: Enable bfloat16
+- ``--param_dtype``: Parameter dtype, ``bf16`` (default) or ``fp16``
 - ``--attn_implementation``: Attention implementation (e.g., eager, flash_attention_2, flash_attention_3, kernels-community/vllm-flash-attn3)
 - ``--gradient_checkpointing``: Enable Gradient Checkpointing
 - ``--save_path``: Final HuggingFace model save path
@@ -39,9 +39,11 @@ Datasets
 - ``--input_key``: Input JSON key for conversions
 - ``--apply_chat_template``: Use HuggingFace ``tokenizer.apply_chat_template``
 - ``--input_template``: Custom ``input_template`` (when not using ``tokenizer.apply_chat_template``), set to ``None`` to disable it. Such as ``$'User: {}\\nAssistant: '``.
-- ``--max_len``: Max length for the samples
+- ``--max_len``: Max total sequence length (prompt + response) for the samples
+- ``--max_new_tokens``: Max tokens to generate per sample (RL training only). If ``None``, dynamically computed as ``max_len - prompt_len`` per sample.
 - ``--max_samples``: Max training samples
 - ``--packing_samples``: Packing samples using Flash Attention 2
+- ``--dataloader_num_workers``: Number of DataLoader worker processes (default ``0``)
 
 LoRA
 ----
@@ -60,6 +62,6 @@ If you use ``LoRA (Low-Rank Adaptation)``, OpenRLHF will not save the full weigh
       --lora_path ./checkpoint/llama3-8b-rm \
       --output_path ./checkpoint/llama-3-8b-rm-combined \
       --is_rm \
-      --bf16
+      --param_dtype bf16
 
 

@@ -1,296 +1,89 @@
-Performance Tuning Guide
-===================================
+Performance Tuning
+==================
 
-Overview
---------
+This guide collects the knobs that matter most for throughput and memory. For hybrid-engine specifics see :doc:`hybrid_engine`; for error triage see :doc:`troubleshooting`.
 
-OpenRLHF's agent-based architecture provides multiple execution modes with different performance characteristics. This guide helps you optimize for your hardware and workload.
+**Rule of thumb**: maximize GPU utilization without running out of memory. Start from a known-good recipe (see ``examples/scripts``) and adjust one knob at a time.
 
-**Key Principle**: Maximize GPU utilization while maintaining training stability.
+Resource allocation (distributed mode)
+--------------------------------------
 
-See :doc:`agent_paradigm` for architecture overview and :doc:`hybrid_engine` for Hybrid Engine details.
+Recommended ratio: ``vLLM : Actor : Critic = 1 : 1 : 1``.
 
-Execution Mode Selection
--------------------------
+Example — 70B model on 48×A100:
 
-.. list-table::
-   :header-rows: 1
-   :widths: 25 35 40
+- 16 GPUs → vLLM engines
+- 16 GPUs → Actor
+- 16 GPUs → Critic
 
-   * - Mode
-     - When to Use
-     - Configuration
-   * - **Hybrid Engine (Default)**
-     - Sufficient GPU memory
-     - ``--colocate_all_models`` + ``--vllm_enable_sleep`` + ``--deepspeed_enable_sleep``
-   * - **Asynchronous**
-     - Throughput critical, convergence validated
-     - ``--async_train`` + ``--agent_func_path``
+For smaller models, the Hybrid Engine (``--colocate_all_models``) is usually preferable.
 
-Resource Allocation (Distributed Mode)
----------------------------------------
-
-**Recommended Ratio**: ``vLLM : Actor : Critic = 1:1:1``
-
-Example: 70B model on 48 A100 GPUs
-
-- 16 GPUs → vLLM Engine
-- 16 GPUs → Actor Model  
-- 16 GPUs → Critic Model
-
-This ensures balanced utilization across generation and training phases.
-
-Speed Optimizations
--------------------
-
-High Priority (Always Enable)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Speed knobs
+-----------
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 40 30
+   :widths: 25 30 45
 
-   * - Optimization
+   * - Knob
      - Flag
-     - Benefit
-   * - **Sample Packing**
+     - When / why
+   * - **Sample packing**
      - ``--packing_samples``
-     - 2-3x training speedup
-   * - **vLLM NCCL Backend**
+     - Always on — removes padding, large training speedup.
+   * - **NCCL weight sync**
      - ``--vllm_sync_backend nccl``
-     - Faster weight sync
-   * - **Dynamic Batch**
-     - ``--use_dynamic_batch``
-     - Better GPU utilization
-
-Medium Priority (When Memory Allows)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 40 30
-
-   * - Optimization
-     - Flag
-     - Requirement
+     - Always on for multi-GPU — faster than the default.
+   * - **Dynamic batch**
+     - ``--use_dynamic_batch`` + ``--train_max_tokens_per_gpu`` / ``--rollout_max_tokens_per_gpu``
+     - Variable sequence lengths — better utilization than fixed micro-batches.
    * - **Hybrid Engine**
      - ``--colocate_all_models`` + ``--vllm_enable_sleep`` + ``--deepspeed_enable_sleep``
-     - Sufficient GPU memory
-   * - **Overlap Comm**
+     - Enough GPU memory — usually the best throughput.
+   * - **Overlap comm**
      - ``--overlap_comm``
-     - Sufficient GPU memory
+     - Enough GPU memory — overlap backward and gradient reduce.
    * - **DeepCompile**
      - ``--deepcompile``
-     - PyTorch 2.0+
-   * - **Prefix Caching**
+     - PyTorch 2.0+ — DeepSpeed graph compilation.
+   * - **Prefix caching**
      - vLLM config
-     - ``n_samples_per_prompt`` > 1
-
-Low Priority (For Throughput)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 40 30
-
-   * - Optimization
-     - Flag
-     - Note
-   * - **Async Training**
+     - ``--n_samples_per_prompt > 1`` — reuse shared prompt KV.
+   * - **Async training**
      - ``--async_train``
-     - May affect stability
+     - Throughput critical and convergence already validated — more off-policy.
+   * - **Partial rollout**
+     - ``--partial_rollout``
+     - With ``--async_train`` — overlap generation with weight sync.
 
-Memory Management
+Memory management
 -----------------
 
-When You Have Enough Memory
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When memory is **plentiful**:
 
-✅ **Enable**:
+- Disable ``--adam_offload``; enable ``--overlap_comm``.
+- Use ``--colocate_all_models`` (Hybrid Engine), or at least ``--colocate_critic_reward`` + ``--colocate_actor_ref``.
 
-- Disable ``--adam_offload``
-- Enable ``--overlap_comm``
-- Use ``--colocate_critic_reward`` and ``--colocate_actor_ref``
-- Use ``--colocate_all_models`` (Hybrid Engine)
+When hitting **OOM** (priority order):
 
-When Hitting OOM
-~~~~~~~~~~~~~~~~
+1. Enable ``--packing_samples`` and ``--gradient_checkpointing``.
+2. Reduce ``--micro_train_batch_size`` / ``--micro_rollout_batch_size``.
+3. Lower ``--vllm_gpu_memory_utilization`` (e.g., 0.6 → 0.5 → 0.4).
+4. Enable ``--adam_offload``; raise ``--zero_stage`` (2 → 3).
+5. Disable colocation (remove ``--colocate_*``) and move to distributed mode.
 
-❌ **Disable**:
-
-- All ``--colocate_*`` options
-- ``--overlap_comm``
-
-✅ **Enable**:
-
-- ``--adam_offload``
-- ``--gradient_checkpointing``
-- Increase ``--zero_stage`` (2 → 3)
-
-✅ **Reduce**:
-
-- ``--micro_train_batch_size``
-- ``--micro_rollout_batch_size``
-- vLLM Tensor Parallel size
-
-Batch Size Tuning
+Batch size tuning
 -----------------
 
-Generation Phase
-~~~~~~~~~~~~~~~~
+- **Generation**: maximize ``--micro_rollout_batch_size`` and minimize vLLM TP size (prefer more engines over larger TP).
+- **Training**: maximize ``--micro_train_batch_size`` with ``--packing_samples`` enabled.
+- **Batch relation**: a common choice is ``train_batch_size = rollout_batch_size * n_samples_per_prompt``.
 
-**Goal**: Maximize throughput
-
-- ✅ Maximize ``--micro_rollout_batch_size``
-- ✅ Minimize vLLM TP size (use more engines instead)
-- ✅ Use ``--enable_prefix_caching`` when ``n_samples_per_prompt`` > 1
-
-Training Phase
-~~~~~~~~~~~~~~
-
-**Goal**: Maximize GPU utilization
-
-- ✅ Maximize ``--micro_train_batch_size``
-- ✅ Enable ``--packing_samples``
-- ✅ Use ``--use_dynamic_batch`` for variable sequence lengths
-
-
-Quick Start Templates
----------------------
-
-Keep recipes non-redundant:
-
-- Hybrid Engine launch recipe: see :doc:`hybrid_engine`
-- RLHF training recipes (SFT/RM/Ray+vLLM): see :doc:`agent_training`
-
-SFT/RM/DPO Training
--------------------
-
-For supervised training tasks:
-
-- ✅ Always enable ``--packing_samples``
-- ✅ Use ``--gradient_checkpointing`` when memory constrained
-- ✅ Use ``--zero_stage 2`` or ``3`` based on model size
-- ✅ Enable ``--overlap_comm`` when memory allows
-
-Batch Inference
----------------
-
-For batch inference with OpenRLHF:
-
-- ✅ Enable `prefix caching <https://docs.vllm.ai/en/stable/automatic_prefix_caching/apc.html>`_ when ``best_of_n`` > 1
-- ✅ Use vLLM's batched inference mode
-- ✅ Adjust ``--vllm_gpu_memory_utilization`` for throughput
-
-Monitoring and Debugging
+Long context (>8K tokens)
 -------------------------
 
-Performance Metrics
-~~~~~~~~~~~~~~~~~~~
+- Enable RingAttention (``--ring_attn_size``) — see :doc:`sequence_parallelism`.
+- Keep ``--packing_samples`` on.
+- Increase ``--zero_stage`` (typically 3) and watch memory closely.
 
-Monitor these metrics during training:
-
-- **Generation throughput**: tokens/second
-- **Training throughput**: samples/second  
-- **GPU utilization**: should be >80%
-- **Memory usage**: should not hit OOM
-
-Common Issues
-~~~~~~~~~~~~~
-
-**Low GPU Utilization**
-
-- ✅ Increase batch sizes
-- ✅ Enable Hybrid Engine
-- ✅ Reduce vLLM TP size
-
-**OOM Errors**
-
-- ✅ Reduce batch sizes
-- ✅ Disable ``--colocate_*`` options
-- ✅ Enable ``--adam_offload``
-- ✅ Increase ``--zero_stage``
-
-**Slow Generation**
-
-- ✅ Use ``--vllm_sync_backend nccl``
-- ✅ Reduce vLLM TP size
-- ✅ Enable prefix caching
-
-**Training Divergence (Async Mode)**
-
-- ✅ Reduce ``OPENRLHF_ASYNC_QUEUE_SIZE``
-- ✅ Switch to synchronous or Hybrid Engine mode
-- ✅ Adjust learning rate
-
-Advanced Optimizations
------------------------
-
-For Large Models (70B+)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-- Use higher ``--zero_stage`` (3)
-- Increase vLLM Tensor Parallel size
-- Use Pipeline Parallelism for vLLM
-- Enable ``--gradient_checkpointing``
-- Consider model quantization (``--load_in_4bit``)
-
-For Long Context (>8K tokens)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- Enable RingAttention (``--ring_attn_size``)
-- Use ``--packing_samples`` aggressively
-- Adjust ``--max_len`` carefully
-- Monitor memory usage closely
-
-For Multi-Node Training
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-- Use SLURM scripts for job management
-- Ensure high-speed interconnect (InfiniBand)
-- Use ``--vllm_sync_backend nccl``
-- Monitor network utilization
-
-Summary
--------
-
-**Default Setup** (Good for most cases)
-
-.. code-block:: bash
-
-   --packing_samples \
-   --vllm_sync_backend nccl \
-   --gradient_checkpointing
-
-**High Performance** (When memory allows)
-
-.. code-block:: bash
-
-   --colocate_all_models \
-   --vllm_enable_sleep \
-   --deepspeed_enable_sleep \
-   --vllm_gpu_memory_utilization 0.5 \
-   --packing_samples \
-   --vllm_sync_backend nccl \
-   --overlap_comm
-
-**Maximum Throughput** (May affect stability)
-
-.. code-block:: bash
-
-   --async_train \
-   --agent_func_path /path/to/agent.py \
-   --packing_samples \
-   --vllm_sync_backend nccl \
-   --use_dynamic_batch
-
-**Memory Constrained**
-
-.. code-block:: bash
-
-   --adam_offload \
-   --gradient_checkpointing \
-   --zero_stage 3 \
-   --packing_samples
-
-See :doc:`agent_paradigm` for execution mode details and :doc:`hybrid_engine` for Hybrid Engine configuration.
+For the launch recipes see :doc:`hybrid_engine` and :doc:`agent_training`; for error triage see :doc:`troubleshooting`.

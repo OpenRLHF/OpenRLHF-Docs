@@ -48,7 +48,7 @@ SFT
       --eval_steps -1 \
       --zero_stage 2 \
       --max_epochs 1 \
-      --bf16 \
+      --param_dtype bf16 \
       --attn_implementation flash_attention_2 \
       --packing_samples \
       --ring_attn_size 2 \
@@ -68,7 +68,7 @@ DPO
       --train_batch_size 256 \
       --micro_train_batch_size 1 \
       --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
-      --bf16 \
+      --param_dtype bf16 \
       --max_epochs 1 \
       --max_len 8192 \
       --zero_stage 3 \
@@ -97,7 +97,7 @@ RM Training
       --train_batch_size 256 \
       --micro_train_batch_size 1 \
       --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
-      --bf16 \
+      --param_dtype bf16 \
       --max_epochs 1 \
       --max_len 8192 \
       --zero_stage 3 \

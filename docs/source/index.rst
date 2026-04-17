@@ -1,7 +1,7 @@
 Welcome to OpenRLHF's documentation!
 ====================================
 
-OpenRLHF is a high-performance, production-ready RLHF framework combining **Ray + vLLM distributed architecture** with a **unified agent-based design paradigm**.
+OpenRLHF is a high-performance RLHF framework built on **Ray + vLLM** with a **unified agent-based execution paradigm**. Its core idea is to decouple the execution mode (single-turn / multi-turn) from the RL algorithm (PPO, REINFORCE++, GRPO, RLOO, ...), so any algorithm can be combined with any mode through a consistent token-in-token-out pipeline.
 
 .. image:: _static/openrlhf-arch.png
    :alt: OpenRLHF Architecture
@@ -11,29 +11,17 @@ OpenRLHF is a high-performance, production-ready RLHF framework combining **Ray 
 Start here
 ----------
 
-New to OpenRLHF? Start with :doc:`quick_start` (includes a short reading guide). Use :doc:`troubleshooting` when you hit issues.
-
-What makes OpenRLHF unique?
----------------------------
-
-**Core Innovation**: Unified agent-based paradigm that decouples execution modes from RL algorithms
-
-- **Agent-Based Paradigm**: Token-in-token-out execution with two orthogonal dimensions (see :doc:`agent_paradigm`)
-  
-  - **Execution Modes**: :ref:`single_turn_mode` (default) | :ref:`multi_turn_mode` (advanced) in :doc:`agent_training`
-  - **Training Guide**: Recipes + algorithms + modes in one place (see :doc:`agent_training`)
-
-- **Distributed Architecture**: Ray + vLLM for scalable training up to 70B+ parameters (see :doc:`architecture`)
-- **Production Ready**: Hybrid Engine, async training, comprehensive monitoring (see :doc:`hybrid_engine` and :doc:`performance`)
+- New users: :doc:`quick_start` — installation and your first training run.
+- Mental model: :doc:`agent_paradigm` and :doc:`architecture`.
+- Something broke: :doc:`troubleshooting`.
 
 Quick Links
 -----------
 
-- **Getting Started**: :doc:`quick_start` - Installation and first RLHF training
-- **Core Concepts**: :doc:`architecture` (Ray + vLLM) | :doc:`agent_paradigm` (Design Paradigm)
-- **Agent Execution**: :ref:`single_turn_mode` (default) | :ref:`multi_turn_mode` (advanced) in :doc:`agent_training`
-- **Training Guide**: :doc:`agent_training` (SFT/RM/RL + single/multi-turn) | :doc:`non_rl` (DPO, KTO, etc.)
-- **Advanced Topics**: :doc:`hybrid_engine` | :doc:`performance` | :doc:`multi-node`
+- **Getting Started**: :doc:`quick_start`
+- **Core Concepts**: :doc:`agent_paradigm` | :doc:`architecture`
+- **Training Guides**: :doc:`agent_training` (RM, RL, single/multi-turn, VLM) | :doc:`non_rl` (SFT, DPO) | :doc:`common_options`
+- **Scaling & Ops**: :doc:`hybrid_engine` | :doc:`performance` | :doc:`checkpoint` | :doc:`sequence_parallelism` | :doc:`multi-node`
 
 Resources
 ---------
@@ -51,7 +39,7 @@ Contents
 
 .. toctree::
    :maxdepth: 2
-   :caption: Getting Started (Read in order)
+   :caption: Getting Started
 
    quick_start
 
@@ -67,8 +55,8 @@ Contents
    :caption: Training Guides
 
    agent_training
-   common_options
    non_rl
+   common_options
 
 .. toctree::
    :maxdepth: 2

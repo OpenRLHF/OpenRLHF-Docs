@@ -1,44 +1,26 @@
-Architecture Foundation: Ray + vLLM Distribution
-=================================================
+Architecture: Ray + vLLM
+========================
 
-OpenRLHF is **the first RLHF framework** built on Ray + vLLM distributed architecture, orchestrating multiple components across GPUs efficiently.
+OpenRLHF orchestrates RLHF training across GPUs using a few well-established components:
 
-Core Infrastructure Components
--------------------------------
+Ray — distributed scheduler
+---------------------------
 
-Ray - Distributed Scheduler and Controller
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`Ray <https://github.com/ray-project/ray>`_ schedules the Actor, Reward, Reference, and Critic models (and vLLM engines) across GPUs. Models can be placed on separate GPUs for large-scale training, or colocated on shared GPUs via the :doc:`hybrid_engine` to maximize utilization. This enables RLHF at up to **70B+ parameters**.
 
-OpenRLHF leverages `Ray <https://github.com/ray-project/ray>`_ for efficient distributed scheduling. It separates the Actor, Reward, Reference, and Critic models across different GPUs, enabling scalable training for models up to **70B+ parameters**.
+vLLM — inference engine
+-----------------------
 
-**Hybrid Engine Scheduling**: All models and vLLM engines can share GPU resources—minimizing idle time and maximizing GPU utilization. This allows running full RLHF pipelines on limited hardware.
+RL training spends most of its wall-clock time on sample generation. `vLLM <https://github.com/vllm-project/vllm>`_ with Auto Tensor Parallelism (AutoTP) and Pipeline Parallelism (PP) provides high-throughput, memory-efficient generation.
 
-vLLM - High-Performance Inference Engine
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DeepSpeed — memory-efficient training
+-------------------------------------
 
-RLHF training spends **80% of the time on sample generation**. Powered by `vLLM <https://github.com/vllm-project/vllm>`_ with Auto Tensor Parallelism (AutoTP) and Pipeline Parallelism (PP), OpenRLHF delivers high-throughput, memory-efficient generation.
+Training uses `DeepSpeed <https://github.com/deepspeedai/DeepSpeed>`_ ZeRO-3 with optional `deepcompile <https://github.com/deepspeedai/DeepSpeed/blob/master/blogs/deepcompile/README.md>`_, `AutoTP <https://github.com/deepspeedai/DeepSpeed/blob/master/blogs/huggingface-tp/README.md>`_, and RingAttention — so you can train large models directly from HuggingFace checkpoints without a heavyweight custom framework.
 
-DeepSpeed - Memory-Efficient Training
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Transformers & NCCL
+-------------------
 
-Built on `DeepSpeed <https://github.com/deepspeedai/DeepSpeed>`_ ZeRO-3, `deepcompile <https://github.com/deepspeedai/DeepSpeed/blob/master/blogs/deepcompile/README.md>`_, `AutoTP <https://github.com/deepspeedai/DeepSpeed/blob/master/blogs/huggingface-tp/README.md>`_, and RingAttention. Enables large model training without heavyweight frameworks while working directly with HuggingFace models.
+Models are loaded through HuggingFace Transformers (no conversion step). Inter-GPU communication uses NCCL / CUDA IPC for weight sync and collective ops.
 
-Transformers - Model Interface
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Native integration with HuggingFace Transformers for seamless model loading, state management, and fine-tuning of pretrained models.
-
-NCCL / CUDA IPC - High-Speed Communication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Efficient inter-GPU communication for distributed training and inference.
-
-Key Benefits
-------------
-
-- **Scalability**: Train models up to 70B+ parameters efficiently
-- **Efficiency**: 80% generation time optimized with vLLM
-- **Flexibility**: Hybrid Engine shares GPUs to avoid resource idling
-- **Compatibility**: Native HuggingFace model integration
-- **Performance**: High-speed NCCL communication
-
+See :doc:`agent_paradigm` for how these pieces are tied together into a unified training pipeline.
