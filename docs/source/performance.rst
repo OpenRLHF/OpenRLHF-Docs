@@ -12,10 +12,7 @@ Pick based on what you're optimizing for:
 
 - **Max throughput → async training** (``--async_train``). Rollout and training overlap through a bounded queue; tune the degree of asynchrony via ``--async_queue_size`` (start at ``1`` and raise only if rollout bottlenecks training). Add ``--partial_rollout`` to overlap weight sync with generation. See :doc:`async_training`.
 - **Max stability → Hybrid Engine** (``--colocate_all_models --vllm_enable_sleep --deepspeed_enable_sleep``). Fully on-policy, excellent GPU utilization through role-swapping on shared GPUs. The safe default for convergence-sensitive workloads. See :doc:`hybrid_engine`.
-- **Distributed mode** (separate GPU groups for vLLM / Actor / Critic) is a fallback for very large models or mixed-hardware clusters where colocation isn't viable. There is no single recommended resource ratio — size each group to its own memory and compute needs; the older ``1:1:1`` rule of thumb is obsolete.
-
-.. note::
-   The ``vLLM : Actor : Critic = 1 : 1 : 1`` guidance from older OpenRLHF releases is no longer recommended. Prefer async or the Hybrid Engine; fall back to tuned distributed allocation only when colocation isn't possible.
+- **Distributed mode** (separate GPU groups for vLLM / Actor / Critic) is a fallback for very large models or mixed-hardware clusters where colocation isn't viable. Size each group to its own memory and compute needs.
 
 Speed knobs
 -----------
