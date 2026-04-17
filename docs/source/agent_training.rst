@@ -73,6 +73,7 @@ minimal version with the essential flags only:
       --use_kl_loss \
       --kl_estimator k2 \
       --init_kl_coef 1e-5 \
+      --entropy_loss_coef 0.0 \
       --enable_vllm_is_correction \
       --vllm_is_correction_type icepop \
       \
@@ -205,10 +206,14 @@ KL divergence between the current policy and the reference policy can be applied
    * - ``--kl_estimator {k1, k2, k3}``
      - KL estimator: ``k1`` for standard PPO penalty, ``k2`` ≈ ``k1`` when used as loss, ``k3`` for GRPO loss.
 
-Recommended pairings:
+Recommended pairings (the trainer warns if you mix them differently):
 
-- Standard PPO / REINFORCE++: ``--init_kl_coef 0.01`` (penalty), ``--kl_estimator k1``.
-- GRPO: ``--use_kl_loss --kl_estimator k3``.
+- **KL as reward penalty** (no ``--use_kl_loss``): ``--kl_estimator k1`` is the only sensible choice.
+  Typical: ``--init_kl_coef 0.01 --kl_estimator k1`` for standard PPO or REINFORCE++.
+- **KL as a loss term** (``--use_kl_loss``): use ``--kl_estimator k2`` or ``k3`` (k1 is not a
+  valid loss). Typical: GRPO uses ``--use_kl_loss --kl_estimator k3``; the default RLVR recipe
+  in :doc:`hybrid_engine` uses ``--use_kl_loss --kl_estimator k2 --init_kl_coef 1e-5`` with
+  REINFORCE++-baseline.
 
 Entropy
 ~~~~~~~

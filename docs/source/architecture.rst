@@ -52,13 +52,53 @@ NCCL / CUDA IPC — High-speed communication
 
 Inter-GPU communication uses NCCL for collective ops and CUDA IPC for intra-node weight transfer. This keeps the cost of weight sync, gradient reduce, and KV-cache movement low even at 70B scale.
 
+Execution-time design principles
+--------------------------------
+
+On top of the static component layout above, OpenRLHF schedules **when** each component runs in
+order to maximize GPU utilization. Two complementary mechanisms are built in — both are first-class
+features and configurable per run:
+
+Hybrid Engine (sleep-mode time-sharing)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Without sharing, vLLM idles during training and DeepSpeed idles during generation — wasting roughly
+half the GPU clock. The Hybrid Engine solves this by colocating Actor / Critic / Reward / Reference
+**and** vLLM on the same GPUs and time-slicing them via sleep mode:
+
+- During the **generation** phase, vLLM is awake and DeepSpeed engines are asleep.
+- After weight sync (NCCL), vLLM goes to sleep and DeepSpeed wakes for **training**.
+- Both sides know how to release memory between phases, so they can fit on one GPU set even at
+  large model sizes.
+
+Trigger flags: ``--colocate_all_models --vllm_enable_sleep --deepspeed_enable_sleep``. This is the
+recommended default on any cluster where memory permits. See :doc:`hybrid_engine` for the full
+configuration and tuning notes.
+
+Async + Partial Rollout (concurrent pipeline)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Async mode runs rollout and training **concurrently** instead of alternating:
+
+- ``--async_train`` overlaps the two phases through a bounded queue (``--async_queue_size``).
+- ``--partial_rollout`` goes further — vLLM never fully stops; on weight sync it **pauses** the
+  in-flight requests, swaps weights, and **resumes**. Generation overlaps with weight broadcast at
+  the cost of slight off-policy noise (in-flight samples mix old and new weights).
+
+Async pipelines deliver the highest throughput and pair naturally with off-policy correction
+(``--enable_vllm_is_correction --vllm_is_correction_type icepop``). They are mutually exclusive
+with vLLM sleep mode, but can still colocate the DeepSpeed models. See :doc:`async_training`.
+
 Key benefits
 ------------
 
-- **Scalability**: train models up to 70B+ parameters efficiently.
-- **Efficiency**: vLLM-accelerated generation eliminates the dominant RLHF bottleneck.
-- **Flexibility**: Hybrid Engine shares GPUs to avoid resource idling on small clusters; distributed mode scales out for large models.
-- **Compatibility**: native HuggingFace model integration — no custom checkpoint format.
-- **Production-ready**: NCCL-backed weight sync, async pipelines, partial rollout, and full checkpoint/resume.
+- **Scalability** — train models up to 70B+ parameters efficiently.
+- **Efficiency** — vLLM-accelerated generation eliminates the dominant RLHF bottleneck.
+- **Flexibility** — Hybrid Engine shares GPUs to avoid resource idling on small clusters;
+  distributed mode scales out for large models; async + partial rollout maximizes overlap when
+  throughput is critical.
+- **Compatibility** — native HuggingFace model integration; no custom checkpoint format.
+- **Production-ready** — NCCL-backed weight sync, full checkpoint / resume, best-checkpoint
+  tracking, EMA, multi-node SLURM, comprehensive logging.
 
-See :doc:`agent_paradigm` for how these pieces are tied together into the unified training pipeline, and :doc:`hybrid_engine` / :doc:`performance` for tuning.
+See :doc:`agent_paradigm` for how these pieces tie together into the unified training pipeline.

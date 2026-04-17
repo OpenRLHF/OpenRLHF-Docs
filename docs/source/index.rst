@@ -65,8 +65,6 @@ Contents
 
    architecture
    agent_paradigm
-   hybrid_engine
-   async_training
 
 .. toctree::
    :maxdepth: 2
@@ -80,6 +78,8 @@ Contents
    :maxdepth: 2
    :caption: Scaling & Operations
 
+   hybrid_engine
+   async_training
    performance
    checkpoint
    sequence_parallelism
