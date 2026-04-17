@@ -8,35 +8,49 @@ OpenRLHF is a high-performance, production-ready RLHF framework that combines a 
    :align: center
    :width: 700px
 
-Core features
--------------
+Highlights
+----------
 
-- **Ray + vLLM distributed architecture** — scales to 70B+ parameter models with vLLM-accelerated generation, DeepSpeed ZeRO-3 training, and Ray-based scheduling.
-- **Unified agent-based paradigm** — token-in-token-out pipeline that decouples execution mode (single-turn / multi-turn) from RL algorithm. Any algorithm pairs with any mode.
-- **State-of-the-art RL algorithms** — PPO, REINFORCE++, REINFORCE++-baseline, GRPO, Dr. GRPO, RLOO.
-- **Hybrid Engine** — colocate Actor / Critic / Reward / Reference / vLLM on the same GPUs with sleep-mode memory sharing for maximum utilization.
-- **Async training & Partial Rollout** — overlap rollout with training; partial rollout overlaps weight sync with generation via vLLM pause/resume.
-- **Single-turn rewards & multi-turn agents** — HTTP remote RM, custom Python reward functions (RFT), or full multi-turn environments with optional OpenAI-compatible chat server.
-- **Vision-Language Model RLHF** *(new in 0.10)* — train VLMs (e.g., Qwen3.5) end-to-end with image inputs.
-- **Off-policy correction** — TIS / ICEPOP / Seq-Mask-TIS to handle vLLM↔training log-prob mismatches.
-- **Production essentials** — resumable checkpoints, best-checkpoint tracking, EMA, Wandb / TensorBoard logging, SLURM multi-node, LoRA / QLoRA (non-RL trainers).
-
-Why OpenRLHF
-------------
-
-- **Performance** — vLLM-accelerated generation eliminates the 80% rollout bottleneck; Hybrid Engine eliminates GPU idle time.
-- **Flexibility** — switch between sync / async pipelines, single / multi-turn modes, and any of six RL algorithms with single-flag changes.
-- **Compatibility** — native HuggingFace model loading; no custom checkpoint format.
-- **Production-ready** — full checkpoint/resume, best-model tracking, multi-node SLURM, comprehensive logging.
-- **Extensible** — plug in custom reward functions or multi-turn environments via a Python file; no trainer modifications needed.
+- **Ray + vLLM distributed architecture** — scales to 70B+ models. vLLM-accelerated generation
+  eliminates the dominant RLHF bottleneck; DeepSpeed ZeRO-3 trains directly from HuggingFace
+  checkpoints with no model conversion.
+- **Unified agent-based paradigm** — token-in-token-out pipeline that decouples *execution mode*
+  (single-turn / multi-turn) from *RL algorithm*. Any algorithm pairs with any mode through a
+  single shared loss layer.
+- **State-of-the-art RL algorithms** — PPO, REINFORCE++, REINFORCE++-baseline, GRPO, Dr. GRPO,
+  RLOO; switchable with one flag.
+- **Hybrid Engine** — colocate Actor / Critic / Reward / Reference / vLLM on the **same** GPUs
+  with sleep-mode memory sharing. Highest utilization on small clusters; simplest deployment.
+- **Async training & Partial Rollout** — overlap rollout with training, and overlap weight sync
+  with generation via vLLM pause / resume. Highest throughput when convergence is validated.
+- **Single-turn rewards & multi-turn agents** — HTTP remote RM, custom Python reward functions
+  (Reinforced Fine-Tuning), full multi-turn environments, or wrap vLLM as an OpenAI-compatible
+  chat server.
+- **Vision-Language Model RLHF** *(new in 0.10)* — train VLMs (e.g., Qwen3.5) end-to-end with
+  image inputs through the same agent pipeline.
+- **Off-policy correction** — TIS / ICEPOP / Seq-Mask-TIS handle vLLM ↔ training log-prob
+  mismatches.
+- **Production essentials** — resumable checkpoints, best-checkpoint tracking, EMA, Wandb /
+  TensorBoard logging, SLURM multi-node, LoRA / QLoRA for SFT / RM / DPO.
 
 Start here
 ----------
 
-- **New users**: :doc:`quick_start` — installation and your first training run.
-- **Mental model**: :doc:`architecture` and :doc:`agent_paradigm`.
-- **Pick a recipe**: :doc:`agent_training` (RL) or :doc:`non_rl` (SFT / RM / DPO).
-- **Something broke**: :doc:`troubleshooting`.
+.. list-table::
+   :widths: 25 75
+
+   * - **New users**
+     - :doc:`quick_start` — install + first training run.
+   * - **Mental model**
+     - :doc:`architecture` (components) and :doc:`agent_paradigm` (design).
+   * - **Pick a recipe**
+     - :doc:`agent_training` (RL training) or :doc:`non_rl` (SFT / RM / DPO).
+   * - **Look up a flag**
+     - :doc:`common_options` (shared) or the trainer-specific page above.
+   * - **Scale or tune**
+     - :doc:`hybrid_engine`, :doc:`async_training`, :doc:`performance`, :doc:`multi-node`.
+   * - **Something broke**
+     - :doc:`troubleshooting`.
 
 Resources
 ---------

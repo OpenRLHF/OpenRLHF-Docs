@@ -1,7 +1,12 @@
 RL Training Guide
 =================
 
-This page is the complete reference for **RL training** in OpenRLHF. Every algorithm and execution mode runs through the same agent execution pipeline. For supervised methods (SFT, RM, DPO) see :doc:`non_rl`. For the conceptual model see :doc:`agent_paradigm`. For shared CLI flags see :doc:`common_options`. For sync vs async pipelines see :doc:`hybrid_engine` and :doc:`async_training`.
+This page is the complete reference for **RL training** in OpenRLHF. Every algorithm and execution
+mode runs through the same agent execution pipeline.
+
+For supervised methods (SFT, RM, DPO) see :doc:`non_rl`. For the conceptual model see
+:doc:`agent_paradigm`. For shared CLI flags see :doc:`common_options`. For sync vs. async pipelines
+see :doc:`hybrid_engine` and :doc:`async_training`.
 
 .. contents::
    :local:
@@ -19,17 +24,18 @@ Every RL run in OpenRLHF combines three orthogonal choices:
    * - Axis
      - Options
      - How to set
-   * - **RL algorithm**
-     - PPO / REINFORCE++ / REINFORCE++-baseline / RLOO / GRPO / Dr. GRPO
-     - ``--advantage_estimator``
    * - **Execution mode**
      - Single-turn (default) | Multi-turn
      - default / ``--remote_rm_url`` | ``--agent_func_path``
+   * - **RL algorithm**
+     - PPO / REINFORCE++ / REINFORCE++-baseline / RLOO / GRPO / Dr. GRPO
+     - ``--advantage_estimator``
    * - **Pipeline**
      - Sync (Hybrid Engine) | Async (with optional partial rollout)
      - :doc:`hybrid_engine` | :doc:`async_training`
 
-These axes are independent: any algorithm runs in any mode under any pipeline, because every rollout produces token-level trajectories that are consumed identically by the loss layer.
+These axes are independent: any algorithm runs in any mode under any pipeline, because every
+rollout produces token-level trajectories that are consumed identically by the loss layer.
 
 .. _rayppo:
 
@@ -101,233 +107,26 @@ minimal version with the essential flags only:
    - GPU-index issues: ``export RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=1`` (NVIDIA)
      or ``RAY_EXPERIMENTAL_NOSET_ROCR_VISIBLE_DEVICES=1`` (AMD).
 
-RL Algorithms
--------------
+Execution Modes
+---------------
 
-Choose with ``--advantage_estimator``. Algorithms differ in **whether they use a critic**, **how they baseline the reward**, and **how they normalize advantages**. All work with every execution mode and pipeline.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 22 22 28 28
-
-   * - Algorithm
-     - ``--advantage_estimator``
-     - Key idea
-     - Best for
-   * - **PPO**
-     - ``gae`` *(default)*
-     - GAE with full critic; clipped surrogate objective
-     - General RLHF, stable training
-   * - **REINFORCE++**
-     - ``reinforce``
-     - Critic-free; PPO clip, KL penalty, reward normalization
-     - Lower memory than PPO
-   * - **REINFORCE++-baseline**
-     - ``reinforce_baseline``
-     - Mean reward as baseline (no critic, no per-prompt std)
-     - **RLVR / reasoning** — robust to reward scale
-   * - **RLOO**
-     - ``rloo``
-     - Leave-one-out baseline + PPO clip + per-token KL
-     - Multi-sample-per-prompt training
-   * - **GRPO**
-     - ``group_norm``
-     - Per-group mean/std normalization + KL loss term
-     - Batch-based reasoning training
-   * - **Dr. GRPO**
-     - ``dr_grpo``
-     - GRPO without local ``/std`` normalization
-     - When per-group std normalization hurts
-
-Algorithm-specific requirements:
-
-- ``rloo`` / ``reinforce_baseline`` / ``group_norm`` require ``--n_samples_per_prompt > 1``.
-- ``group_norm`` (GRPO) typically pairs with ``--use_kl_loss`` and ``--kl_estimator k3``.
-
-PPO loss & clipping
-~~~~~~~~~~~~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Flag
-     - Meaning
-   * - ``--eps_clip``
-     - PPO clip range (default ``0.2``).
-   * - ``--eps_clip_low_high <low> <high>``
-     - Asymmetric clip bounds; overrides ``--eps_clip`` when set.
-   * - ``--dual_clip <c>``
-     - Dual-clip PPO upper bound (typical ``c=3``); prevents oversized policy updates on negative advantages.
-   * - ``--value_clip``
-     - Critic value clip (default ``0.5``).
-   * - ``--policy_loss_type {ppo, gspo}``
-     - Switch between standard PPO and GSPO-style loss aggregation.
-   * - ``--ptx_coef``
-     - PPO-ptx pre-training loss coefficient (default ``0.05``).
-
-Advantage / GAE
-~~~~~~~~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Flag
-     - Meaning
-   * - ``--gamma``
-     - Discount factor (default ``1.0`` — treats trajectory as one episode, no discounting).
-   * - ``--lambd``
-     - GAE λ (default ``1.0``); lower λ trades bias for variance.
-   * - ``--no_advantage_std_norm``
-     - Keep mean centering but disable dividing by advantage std.
-   * - ``--normalize_reward``
-     - Online running mean/std normalization of raw rewards.
-   * - ``--reward_clip_range <low> <high>``
-     - Clamp raw rewards before advantage computation (default ``-10 10``).
-
-KL control
-~~~~~~~~~~
-
-KL divergence between the current policy and the reference policy can be applied either as a **penalty on the reward** or as a **separate loss term**:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Flag
-     - Meaning
-   * - ``--init_kl_coef``
-     - Initial KL penalty coefficient (default ``0.01``). Set ``0`` to disable the reference model entirely.
-   * - ``--kl_target`` / ``--kl_horizon``
-     - Adaptive KL controller — when ``--kl_target`` is set, the coefficient adapts toward this target over ``--kl_horizon`` steps.
-   * - ``--use_kl_loss``
-     - Add KL as a separate loss term (GRPO-style) rather than a reward penalty.
-   * - ``--kl_estimator {k1, k2, k3}``
-     - KL estimator: ``k1`` for standard PPO penalty, ``k2`` ≈ ``k1`` when used as loss, ``k3`` for GRPO loss.
-
-Recommended pairings (the trainer warns if you mix them differently):
-
-- **KL as reward penalty** (no ``--use_kl_loss``): ``--kl_estimator k1`` is the only sensible choice.
-  Typical: ``--init_kl_coef 0.01 --kl_estimator k1`` for standard PPO or REINFORCE++.
-- **KL as a loss term** (``--use_kl_loss``): use ``--kl_estimator k2`` or ``k3`` (k1 is not a
-  valid loss). Typical: GRPO uses ``--use_kl_loss --kl_estimator k3``; the default RLVR recipe
-  in :doc:`hybrid_engine` uses ``--use_kl_loss --kl_estimator k2 --init_kl_coef 1e-5`` with
-  REINFORCE++-baseline.
-
-Entropy
-~~~~~~~
-
-- ``--entropy_loss_coef``: entropy regularization coefficient. ``None`` disables it; ``0`` only logs entropy without applying it as a loss.
-
-Length penalties (DAPO / ProRL)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For reasoning workloads where models can run away with output length:
-
-- ``--overlong_buffer_len <L>``: penalize responses whose length exceeds ``max_new_tokens - L`` (DAPO-style soft length limit).
-- ``--overlong_penalty_factor``: multiplicative penalty magnitude (default ``1.0``).
-- ``--stop_properly_penalty_coef <c>``: penalty for samples truncated by length (``finish_reason='length'``).
-  ``c >= 0`` scales the reward by ``c ∈ [0, 1]``; ``c < 0`` overrides the reward (e.g., ``-0.5``).
-
-Misc
-~~~~
-
-- ``--freezing_actor_steps``: keep actor frozen for the first *N* updates while critic warms up.
-- ``--top_p`` / ``--temperature``: vLLM sampling parameters during rollouts.
-- ``--save_value_network``: also save the critic checkpoint (PPO only).
-- ``--full_determinism``: enable bit-reproducible behavior (slower; vLLM v1 + fixed seed paths).
-
-Dynamic Sampling (DAPO)
------------------------
-
-For reasoning tasks, generate **multiple completions per prompt** and train only on a subset:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 35 65
-
-   * - Flag
-     - Meaning
-   * - ``--n_samples_per_prompt``
-     - Completions per prompt (must be > 1 for filtering / RLOO / GRPO / REINFORCE++-baseline).
-   * - ``--dynamic_filtering``
-     - Enable DAPO-style filtering by ``scores`` returned from the reward / agent function.
-   * - ``--dynamic_filtering_reward_range <low> <high>``
-     - Reward range to keep, e.g., ``0.0 1.0``. Samples outside the range are dropped.
-   * - ``--vllm_generate_batch_size``
-     - vLLM generation batch size; can exceed ``--rollout_batch_size`` for oversampling.
-       Requires ``--async_train`` when greater than ``--rollout_batch_size``.
-   * - ``--use_dynamic_batch``
-     - Form micro-batches by token budget instead of count — much better packing for variable-length sequences.
-       Pair with ``--train_max_tokens_per_gpu`` and ``--rollout_max_tokens_per_gpu``.
-
-Sizing rule of thumb: ``train_batch_size = rollout_batch_size * n_samples_per_prompt``. With
-``--dynamic_filtering`` the effective batch may shrink if many samples are filtered out — keep
-oversample headroom via ``--vllm_generate_batch_size`` (async only).
-
-End-to-end DAPO recipe: `train_dapo_ray_hybrid_engine.sh
-<https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_dapo_ray_hybrid_engine.sh>`_.
-
-Off-policy correction (TIS / ICEPOP / Seq-Mask-TIS)
----------------------------------------------------
-
-Because vLLM uses different kernels (and sometimes a different precision) than the trainer, the
-same token sequence can produce slightly different log-probs in rollout vs. training. OpenRLHF can
-apply **importance-sampling correction** to compensate.
-
-Enable with ``--enable_vllm_is_correction`` and pick a strategy:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 25 30 45
-
-   * - Strategy
-     - Flag
-     - Behavior
-   * - **TIS** *(default)*
-     - ``--vllm_is_correction_type tis``
-     - Token-level **clamp** of the IS ratio into ``[low, high]``.
-   * - **ICEPOP**
-     - ``--vllm_is_correction_type icepop``
-     - Token-level **filter** — zero out coefficients outside ``[low, high]`` (no clamp).
-   * - **Seq-Mask-TIS**
-     - ``--vllm_is_correction_type seq-mask-tis``
-     - Sequence-level geometric-mean masking.
-
-Thresholds via ``--vllm_is_truncated_threshold <low> <high>`` (default ``0.5 5.0``).
-Background: `off-policy RL training <https://fengyao.notion.site/off-policy-rl>`_.
-
-ICEPOP is equivalent to a hard mask:
-
-.. code-block:: python
-
-   # ICEPOP: zero-out coefficients outside the interval
-   vllm_is = exp(old_log_probs - rollout_log_probs)
-   mask = (vllm_is >= low) & (vllm_is <= high)
-   vllm_is = vllm_is * mask
-
-.. tip::
-   Async + partial rollout pairs naturally with ICEPOP because in-flight samples mix old and new
-   weights. See :doc:`async_training`.
+The execution mode determines **how an experience is collected**. Choose based on the structure of
+your task.
 
 .. _single_turn_mode:
 
-Single-Turn Mode (Default)
---------------------------
-
-Single-turn covers the vast majority of RLHF use cases: one prompt → one response → one reward.
-The reward source can be any of:
-
-1. A trained reward model (``--reward_pretrain``).
-2. A remote HTTP RM server (``--remote_rm_url http://host:5000/get_reward``).
-3. A local Python reward function (``--remote_rm_url /path/to/reward_func.py``) —
-   this enables **Reinforced Fine-Tuning (RFT)** for code, math, formatting, etc.
-
-Remote reward-model server
+Single-Turn Mode (default)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Host a large RM behind an HTTP endpoint:
+One prompt → one response → one reward. Covers the vast majority of RLHF use cases. The reward
+source is one of:
+
+1. A **trained reward model** — set ``--reward_pretrain``.
+2. A **remote HTTP RM server** — set ``--remote_rm_url http://host:5000/get_reward``.
+3. A **local Python reward function** — set ``--remote_rm_url /path/to/reward_func.py``. This
+   enables Reinforced Fine-Tuning (RFT) for code, math, formatting, multi-objective rewards, etc.
+
+**Remote reward-model server.** Host a large RM behind an HTTP endpoint:
 
 .. code-block:: bash
 
@@ -340,18 +139,13 @@ Host a large RM behind an HTTP endpoint:
       --max_len 8192 \
       --batch_size 16
 
-Then point the trainer at it:
-
-.. code-block:: bash
-
+   # then in the trainer:
    python3 -m openrlhf.cli.train_ppo_ray \
       --remote_rm_url http://localhost:5000/get_reward \
       ...
 
-Custom reward function (Reinforced Fine-Tuning)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Pass a Python file path to ``--remote_rm_url``; OpenRLHF imports and calls it on the fly:
+**Custom reward function (RFT).** Pass a Python file path to ``--remote_rm_url``; OpenRLHF imports
+and calls it on the fly. Pass the ground-truth field via ``--label_key answer``:
 
 .. code-block:: python
 
@@ -381,7 +175,6 @@ Pass a Python file path to ``--remote_rm_url``; OpenRLHF imports and calls it on
            "extra_logs": {"accuracy": reward.mean().item()},
        }
 
-Pass the ground-truth field via ``--label_key answer`` (or whichever JSON key holds your label).
 End-to-end example: `train_ppo_with_reward_fn.sh
 <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_ppo_with_reward_fn.sh>`_.
 
@@ -392,7 +185,7 @@ End-to-end example: `train_ppo_with_reward_fn.sh
 .. _multi_turn_mode:
 
 Multi-Turn Mode
----------------
+~~~~~~~~~~~~~~~
 
 For multi-step interactions — reasoning chains, coding with feedback, game playing, tool use —
 implement a multi-turn agent and pass it via ``--agent_func_path``. Each sample becomes an
@@ -406,10 +199,8 @@ implement a multi-turn agent and pass it via ``--agent_func_path``. Each sample 
 OpenRLHF wraps everything in the same token-in-token-out trajectory consumed by the loss, so any
 RL algorithm just works.
 
-Implementing an agent
-~~~~~~~~~~~~~~~~~~~~~
-
-Subclass ``AgentInstanceBase`` and (optionally) wrap it in ``MultiTurnAgentExecutor``:
+**Implementing an agent.** Subclass ``AgentInstanceBase`` and (optionally) wrap it in
+``MultiTurnAgentExecutor``:
 
 .. code-block:: python
 
@@ -454,7 +245,7 @@ Subclass ``AgentInstanceBase`` and (optionally) wrap it in ``MultiTurnAgentExecu
        def __init__(self):
            super().__init__(AgentInstance)
 
-Return-value contract:
+**Return-value contract:**
 
 - ``reset(states)`` → ``{"observation": str}``.
 - ``step(states)`` → dict containing ``rewards`` (Tensor), ``scores`` (Tensor),
@@ -466,8 +257,7 @@ For complete custom token-level control, subclass ``AgentExecutorBase`` directly
 ``execute()`` — but stick to the **token-in-token-out principle** so sampling and training stay
 aligned.
 
-Launching multi-turn training
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+**Launching:**
 
 .. code-block:: bash
 
@@ -477,16 +267,13 @@ Launching multi-turn training
       ...
 
 For higher throughput add ``--async_train`` (and optionally ``--partial_rollout``); see
-:doc:`async_training` for the configuration.
+:doc:`async_training`.
 
-OpenAI-compatible Agent Server
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-When your agent needs an OpenAI-style chat API (e.g., to plug into existing tool-use frameworks),
-`examples/python/agent_func_openai_server_executor.py
+**OpenAI-compatible Agent Server.** When your agent needs an OpenAI-style chat API (e.g., to plug
+into existing tool-use frameworks), `examples/python/agent_func_openai_server_executor.py
 <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/python/agent_func_openai_server_executor.py>`_
-wraps the local vLLM as a ``/v1/chat/completions`` server while still collecting token-level
-traces for RL training:
+wraps the local vLLM as a ``/v1/chat/completions`` server while still collecting token-level traces
+for RL training:
 
 - Standard endpoints: ``/v1/chat/completions``, ``/v1/models``, ``/tokenize``.
 - Per-session token IDs and logprobs are captured automatically.
@@ -499,26 +286,246 @@ traces for RL training:
       --agent_func_path examples/python/agent_func_openai_server_executor.py \
       ...
 
-Upstream references:
+RL Algorithms
+-------------
 
-- Async agent RLHF: `train_reinforce_baseline_ray_agent_async.sh
-  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_ray_agent_async.sh>`_
-- REINFORCE++-baseline + Hybrid Engine: `train_reinforce_baseline_hybrid_engine.sh
-  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_hybrid_engine.sh>`_
-- DAPO with dynamic filtering: `train_dapo_ray_hybrid_engine.sh
-  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_dapo_ray_hybrid_engine.sh>`_
-- ProRL V2 reasoning recipe: `train_prorlv2_math_hybrid_engine.sh
-  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_prorlv2_math_hybrid_engine.sh>`_
-- Custom Python reward (RFT): `train_ppo_with_reward_fn.sh
-  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_ppo_with_reward_fn.sh>`_
+The algorithm determines **how the policy is updated** from the collected trajectories. Choose with
+``--advantage_estimator``. Algorithms differ in whether they use a critic, how they baseline the
+reward, and how they normalize advantages. **All algorithms work with every execution mode and
+pipeline.**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 22 28 28
+
+   * - Algorithm
+     - ``--advantage_estimator``
+     - Key idea
+     - Best for
+   * - **PPO**
+     - ``gae`` *(default)*
+     - GAE with full critic; clipped surrogate objective
+     - General RLHF, stable training
+   * - **REINFORCE++**
+     - ``reinforce``
+     - Critic-free; PPO clip, KL penalty, reward normalization
+     - Lower memory than PPO
+   * - **REINFORCE++-baseline**
+     - ``reinforce_baseline``
+     - Mean reward as baseline (no critic, no per-prompt std)
+     - **RLVR / reasoning** — robust to reward scale
+   * - **RLOO**
+     - ``rloo``
+     - Leave-one-out baseline + PPO clip + per-token KL
+     - Multi-sample-per-prompt training
+   * - **GRPO**
+     - ``group_norm``
+     - Per-group mean/std normalization + KL loss term
+     - Batch-based reasoning training
+   * - **Dr. GRPO**
+     - ``dr_grpo``
+     - GRPO without local ``/std`` normalization
+     - When per-group std normalization hurts
+
+Algorithm-specific requirements:
+
+- ``rloo`` / ``reinforce_baseline`` / ``group_norm`` require ``--n_samples_per_prompt > 1``.
+- ``group_norm`` (GRPO) typically pairs with ``--use_kl_loss`` and ``--kl_estimator k3``.
+
+Tuning
+------
+
+The flags below are tuning knobs around the chosen algorithm. Most users will only touch the KL
+control and length-penalty knobs in practice.
+
+Loss & clipping
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Flag
+     - Meaning
+   * - ``--eps_clip``
+     - PPO clip range (default ``0.2``).
+   * - ``--eps_clip_low_high <low> <high>``
+     - Asymmetric clip bounds; overrides ``--eps_clip`` when set.
+   * - ``--dual_clip <c>``
+     - Dual-clip PPO upper bound (typical ``c=3``); prevents oversized policy updates on negative
+       advantages.
+   * - ``--value_clip``
+     - Critic value clip (default ``0.5``).
+   * - ``--policy_loss_type {ppo, gspo}``
+     - Switch between standard PPO and GSPO-style loss aggregation.
+   * - ``--ptx_coef``
+     - PPO-ptx pre-training loss coefficient (default ``0.05``).
+
+Advantage / GAE
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Flag
+     - Meaning
+   * - ``--gamma``
+     - Discount factor (default ``1.0`` — treats trajectory as one episode, no discounting).
+   * - ``--lambd``
+     - GAE λ (default ``1.0``); lower λ trades bias for variance.
+   * - ``--no_advantage_std_norm``
+     - Keep mean centering but disable dividing by advantage std.
+
+KL control
+~~~~~~~~~~
+
+KL divergence between the current policy and the reference policy can be applied either as a
+**penalty on the reward** or as a **separate loss term**:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Flag
+     - Meaning
+   * - ``--init_kl_coef``
+     - Initial KL coefficient (default ``0.01``). Set ``0`` to disable the reference model entirely.
+   * - ``--kl_target`` / ``--kl_horizon``
+     - Adaptive KL controller — when ``--kl_target`` is set, the coefficient adapts toward this
+       target over ``--kl_horizon`` steps.
+   * - ``--use_kl_loss``
+     - Add KL as a separate loss term (GRPO-style) rather than a reward penalty.
+   * - ``--kl_estimator {k1, k2, k3}``
+     - KL estimator: ``k1`` for standard PPO penalty, ``k2`` ≈ ``k1`` when used as loss, ``k3`` for
+       GRPO loss.
+
+Recommended pairings (the trainer warns if you mix them differently):
+
+- **KL as reward penalty** (no ``--use_kl_loss``): ``--kl_estimator k1`` is the only sensible
+  choice. Typical: ``--init_kl_coef 0.01 --kl_estimator k1`` for standard PPO or REINFORCE++.
+- **KL as a loss term** (``--use_kl_loss``): use ``--kl_estimator k2`` or ``k3`` (k1 is not a
+  valid loss). Typical: GRPO uses ``--use_kl_loss --kl_estimator k3``; the default RLVR recipe in
+  :doc:`hybrid_engine` uses ``--use_kl_loss --kl_estimator k2 --init_kl_coef 1e-5`` with
+  REINFORCE++-baseline.
+
+Entropy
+~~~~~~~
+
+- ``--entropy_loss_coef``: entropy regularization coefficient. ``None`` disables it; ``0`` only
+  logs entropy without applying it as a loss.
+
+Reward shaping
+~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Flag
+     - Meaning
+   * - ``--normalize_reward``
+     - Online running mean/std normalization of raw rewards.
+   * - ``--reward_clip_range <low> <high>``
+     - Clamp raw rewards before advantage computation (default ``-10 10``).
+   * - ``--overlong_buffer_len <L>``
+     - DAPO-style soft length limit: penalize responses whose length exceeds
+       ``max_new_tokens - L``.
+   * - ``--overlong_penalty_factor``
+     - Multiplicative magnitude of the overlong penalty (default ``1.0``).
+   * - ``--stop_properly_penalty_coef <c>``
+     - ProRL-style truncation penalty for samples with ``finish_reason='length'``.
+       ``c >= 0`` scales the reward by ``c ∈ [0, 1]``; ``c < 0`` overrides the reward
+       (e.g., ``-0.5``).
+
+Off-policy correction (TIS / ICEPOP / Seq-Mask-TIS)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because vLLM uses different kernels (and sometimes a different precision) than the trainer, the
+same token sequence can produce slightly different log-probs in rollout vs. training. OpenRLHF can
+apply **importance-sampling correction** to compensate.
+
+Enable with ``--enable_vllm_is_correction`` and pick a strategy:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 30 45
+
+   * - Strategy
+     - Flag
+     - Behavior
+   * - **TIS** *(default)*
+     - ``--vllm_is_correction_type tis``
+     - Token-level **clamp** of the IS ratio into ``[low, high]``.
+   * - **ICEPOP**
+     - ``--vllm_is_correction_type icepop``
+     - Token-level **filter** — zero out coefficients outside ``[low, high]`` (no clamp).
+   * - **Seq-Mask-TIS**
+     - ``--vllm_is_correction_type seq-mask-tis``
+     - Sequence-level geometric-mean masking.
+
+Thresholds: ``--vllm_is_truncated_threshold <low> <high>`` (default ``0.5 5.0``).
+Background: `off-policy RL training <https://fengyao.notion.site/off-policy-rl>`_.
+
+ICEPOP is equivalent to a hard mask:
+
+.. code-block:: python
+
+   # ICEPOP: zero-out coefficients outside the interval
+   vllm_is = exp(old_log_probs - rollout_log_probs)
+   mask = (vllm_is >= low) & (vllm_is <= high)
+   vllm_is = vllm_is * mask
+
+.. tip::
+   Async + partial rollout pairs naturally with ICEPOP because in-flight samples mix old and new
+   weights. See :doc:`async_training`.
+
+Dynamic sampling (DAPO)
+~~~~~~~~~~~~~~~~~~~~~~~
+
+For reasoning tasks, generate **multiple completions per prompt** and train only on a subset:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Flag
+     - Meaning
+   * - ``--n_samples_per_prompt``
+     - Completions per prompt (must be > 1 for filtering / RLOO / GRPO / REINFORCE++-baseline).
+   * - ``--dynamic_filtering``
+     - Enable DAPO-style filtering by ``scores`` returned from the reward / agent function.
+   * - ``--dynamic_filtering_reward_range <low> <high>``
+     - Reward range to keep, e.g., ``0.0 1.0``. Samples outside the range are dropped.
+   * - ``--vllm_generate_batch_size``
+     - vLLM generation batch size; can exceed ``--rollout_batch_size`` for oversampling. Requires
+       ``--async_train`` when greater than ``--rollout_batch_size``.
+   * - ``--use_dynamic_batch``
+     - Form micro-batches by token budget instead of count — much better packing for variable-length
+       sequences. Pair with ``--train_max_tokens_per_gpu`` and ``--rollout_max_tokens_per_gpu``.
+
+Sizing rule of thumb: ``train_batch_size = rollout_batch_size * n_samples_per_prompt``. With
+``--dynamic_filtering`` the effective batch may shrink if many samples are filtered out — keep
+oversample headroom via ``--vllm_generate_batch_size`` (async only).
+
+End-to-end DAPO recipe: `train_dapo_ray_hybrid_engine.sh
+<https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_dapo_ray_hybrid_engine.sh>`_.
+
+Sampling & misc
+~~~~~~~~~~~~~~~
+
+- ``--top_p`` / ``--temperature``: vLLM sampling parameters during rollouts.
+- ``--freezing_actor_steps``: keep actor frozen for the first *N* updates while critic warms up.
+- ``--save_value_network``: also save the critic checkpoint (PPO only).
+- ``--full_determinism``: bit-reproducible behavior (slower; vLLM v1 + fixed seed paths).
 
 Vision-Language Model (VLM) RLHF
 --------------------------------
 
 Since OpenRLHF 0.10, VLMs (e.g., **Qwen3.5**) can be trained end-to-end with image inputs. The
 framework auto-detects VLMs via the ``vision_config`` field in the HuggingFace config, loads them
-with ``AutoModelForImageTextToText``, uses ``AutoProcessor`` for correct image-token insertion,
-and forwards images to vLLM for multimodal generation.
+with ``AutoModelForImageTextToText``, uses ``AutoProcessor`` for correct image-token insertion, and
+forwards images to vLLM for multimodal generation.
 
 Why this matters: previous VLM RLHF setups required custom data loaders and bespoke inference
 paths. OpenRLHF reuses the **same agent execution pipeline**, the **same RL algorithms**, and the
@@ -580,13 +587,13 @@ End-to-end example — see `train_vlm_math_hybrid_engine.sh
       ...
 
 .. note::
+
    - **Tested**: Qwen3.5 (hybrid linear + full attention).
    - **Auto-detected, not yet tested**: VLMs with a ``ForConditionalGeneration`` architecture
      (Gemma4, LLaVA, InternVL, ...).
    - Use ``--attn_implementation eager`` for models with linear attention layers — flash attention
      may not support packed sequences there.
-   - Multi-turn VLM RLHF is supported; see
-     `vlm_multiturn_agent.py
+   - Multi-turn VLM RLHF is supported; see `vlm_multiturn_agent.py
      <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/python/vlm_multiturn_agent.py>`_.
 
 Logging & evaluation
@@ -603,3 +610,19 @@ Logging & evaluation
 Training metrics include policy loss, KL, entropy, reward / advantage statistics, generation
 length, grad norm, and per-phase wall-clock time. See :doc:`checkpoint` for save/resume mechanics
 and :doc:`performance` for tuning.
+
+Reference scripts
+-----------------
+
+- REINFORCE++-baseline + Hybrid Engine — `train_reinforce_baseline_hybrid_engine.sh
+  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_hybrid_engine.sh>`_
+- Async agent RLHF + Partial Rollout — `train_reinforce_baseline_ray_agent_async.sh
+  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_reinforce_baseline_ray_agent_async.sh>`_
+- DAPO with dynamic filtering — `train_dapo_ray_hybrid_engine.sh
+  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_dapo_ray_hybrid_engine.sh>`_
+- ProRL V2 (1.5B reasoning) — `train_prorlv2_math_hybrid_engine.sh
+  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_prorlv2_math_hybrid_engine.sh>`_
+- Custom Python reward (RFT) — `train_ppo_with_reward_fn.sh
+  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_ppo_with_reward_fn.sh>`_
+- VLM math RLHF — `train_vlm_math_hybrid_engine.sh
+  <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/scripts/train_vlm_math_hybrid_engine.sh>`_

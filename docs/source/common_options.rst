@@ -137,21 +137,11 @@ Logging & monitoring
 - ``--logging_steps``: log every *N* training steps.
 - ``--eval_steps``: evaluate every *N* steps (``-1`` to disable).
 
-Sequence parallelism (long context)
------------------------------------
+Long context & checkpointing
+----------------------------
 
-- ``--ring_attn_size``: RingAttention group size — splits a sequence across this many GPUs.
-- ``--ring_head_stride``: number of attention heads handled per RingAttention round (must divide num heads); larger = faster but more memory.
+These have their own dedicated pages:
 
-See :doc:`sequence_parallelism`.
-
-Checkpointing
--------------
-
-See :doc:`checkpoint` for the full list. Quick summary:
-
-- ``--save_steps`` / ``--ckpt_path`` / ``--load_checkpoint``: save / resume training.
-- ``--save_hf_ckpt``: also export a HuggingFace-format model at each checkpoint.
-- ``--max_ckpt_num`` / ``--max_ckpt_mem``: retention caps.
-- ``--best_metric_key`` *(PPO only)*: best-checkpoint tracking.
-- ``--enable_ema`` / ``--ema_beta`` *(PPO only)*: EMA copy of the policy.
+- **RingAttention** (``--ring_attn_size`` / ``--ring_head_stride``) — see :doc:`sequence_parallelism`.
+- **Checkpointing** (``--save_steps`` / ``--ckpt_path`` / ``--load_checkpoint`` /
+  ``--save_hf_ckpt`` / ``--best_metric_key`` / ``--enable_ema`` …) — see :doc:`checkpoint`.

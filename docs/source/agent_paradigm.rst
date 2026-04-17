@@ -76,77 +76,82 @@ Core design principles
    * - **Production-ready**
      - Built-in support for resumable checkpoints, best-checkpoint tracking, EMA, multi-node SLURM, Wandb/TensorBoard, off-policy correction, length penalties, dynamic filtering — all modular flags on top of the same pipeline.
 
-Two execution modes (orthogonal to algorithms)
-----------------------------------------------
+Execution modes (orthogonal to algorithms)
+------------------------------------------
 
-Execution mode and RL algorithm are two **independent** axes — every combination is valid and supported.
+Execution mode and RL algorithm are two **independent** axes — every combination is valid.
 
 .. list-table::
    :header-rows: 1
-   :widths: 22 38 25 15
+   :widths: 22 40 23 15
 
    * - Mode
      - Use cases
      - How to select
      - Complexity
    * - **Single-Turn** *(default)*
-     - Standard RLHF, RLVR, Reinforced Fine-Tuning with custom rewards (math / code / format / multi-objective)
-     - Default; optionally ``--remote_rm_url`` (HTTP RM server or local Python file)
+     - Standard RLHF, RLVR, Reinforced Fine-Tuning with custom rewards
+       (math / code / format / multi-objective)
+     - default; optionally ``--remote_rm_url`` (HTTP RM server or local Python file)
      - ⭐ — covers ~99% of use cases
    * - **Multi-Turn**
-     - Multi-step reasoning with environment feedback, code execution loops, game playing, tool use, agent training
+     - Multi-step reasoning with environment feedback, code execution loops, game playing,
+       tool use, agent training
      - ``--agent_func_path /path/to/agent.py``
      - ⭐⭐ — implement ``reset()`` / ``step()``
 
-Algorithm × mode combinations (all valid):
+Pipelines (sync vs. async)
+--------------------------
+
+A third orthogonal axis — choose based on your throughput / convergence trade-off.
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 35 35
-
-   * - Combination
-     - Example use
-     - Typical script
-   * - **PPO + Single-Turn**
-     - Classical RLHF with a trained reward model
-     - ``train_ppo_ray_hybrid_engine.sh``
-   * - **REINFORCE++-baseline + Single-Turn**
-     - RLVR / reasoning with rule-based rewards
-     - ``train_prorlv2_math_hybrid_engine.sh``
-   * - **GRPO + Single-Turn**
-     - Group-normalized reasoning training
-     - ``train_reinforce_baseline_hybrid_engine.sh``
-   * - **REINFORCE++-baseline + Multi-Turn**
-     - Async agent RLHF with environment feedback
-     - ``train_reinforce_baseline_ray_agent_async.sh``
-   * - **REINFORCE++-baseline + VLM (Single-Turn)**
-     - Vision-language math reasoning
-     - ``train_vlm_math_hybrid_engine.sh``
-   * - **PPO + Multi-Turn + OpenAI Agent Server**
-     - Tool-use training with an OpenAI-compatible chat API
-     - ``agent_func_openai_server_executor.py``
-
-Two pipelines (sync vs. async)
-------------------------------
-
-The pipeline dimension is also orthogonal — choose based on your throughput / convergence trade-off.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 25 38 37
+   :widths: 25 40 35
 
    * - Pipeline
      - Behavior
      - When to use
    * - **Sync (Hybrid Engine)**
      - Rollout → train → rollout (one phase at a time, models share GPUs via sleep mode)
-     - Default. Best convergence stability; best throughput when GPUs are colocated. See :doc:`hybrid_engine`.
+     - Default. Best convergence stability; best throughput on colocated GPUs. See
+       :doc:`hybrid_engine`.
    * - **Async**
-     - Rollout and train run concurrently with a bounded queue (``--async_queue_size``); samples are slightly off-policy
-     - Throughput-critical workloads; convergence already validated. ``--async_train``.
+     - Rollout and train run concurrently through a bounded queue (``--async_queue_size``);
+       samples are slightly off-policy
+     - Throughput-critical, convergence already validated. ``--async_train``.
    * - **Async + Partial Rollout**
      - Generation never stops — vLLM pause/resume swaps weights mid-flight
-     - Maximum overlap; in-flight samples may contain old + new weight tokens. ``--async_train --partial_rollout``.
+     - Maximum overlap; in-flight samples may contain old + new weight tokens.
+       ``--async_train --partial_rollout``. See :doc:`async_training`.
+
+Worked combinations
+-------------------
+
+A few combinations from the upstream reference scripts:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 35 30
+
+   * - Algorithm × Mode × Pipeline
+     - Example use
+     - Reference script
+   * - **PPO + Single-Turn + Sync**
+     - Classical RLHF with a trained reward model
+     - ``train_ppo_ray_hybrid_engine.sh``
+   * - **REINFORCE++-baseline + Single-Turn + Sync**
+     - RLVR / reasoning with rule-based rewards
+     - ``train_prorlv2_math_hybrid_engine.sh``
+   * - **REINFORCE++-baseline + Multi-Turn + Async + Partial Rollout**
+     - Async agent RLHF with environment feedback
+     - ``train_reinforce_baseline_ray_agent_async.sh``
+   * - **REINFORCE++-baseline + VLM Single-Turn + Sync**
+     - Vision-language math reasoning
+     - ``train_vlm_math_hybrid_engine.sh``
+   * - **PPO + Multi-Turn (OpenAI server) + Sync**
+     - Tool-use training with an OpenAI-compatible chat API
+     - ``agent_func_openai_server_executor.py``
 
 Mental model in one sentence
 ----------------------------
