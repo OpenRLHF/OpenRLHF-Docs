@@ -1,9 +1,24 @@
 Hybrid Engine
 =============
 
-The **Hybrid Engine** colocates all models (Actor, Critic, Reward, Reference) and vLLM engines on the **same** GPUs so none sit idle between the generation and training phases. It is the recommended mode when GPU memory allows — typically the best throughput and the simplest setup.
+The **Hybrid Engine** colocates all RL components — Actor, Critic, Reward, Reference, and the vLLM engines — on the **same** GPUs and time-slices them via memory sleep mode. It is the recommended setup when GPU memory allows: it gives the simplest deployment, the lowest GPU count, and typically the best throughput.
 
-See :doc:`agent_paradigm` for the overall architecture and :doc:`performance` for the broader tuning guide.
+For the broader architecture see :doc:`architecture`; for tuning see :doc:`performance`.
+
+.. contents::
+   :local:
+   :depth: 2
+
+How sleep mode works
+--------------------
+
+In a naive distributed RL setup, vLLM idles during the training phase and DeepSpeed idles during generation — wasting half the GPU clock. Hybrid Engine fixes this by **time-sharing the same GPUs**:
+
+1. **Generation phase**: vLLM is awake and uses most of the GPU (KV cache + weights). DeepSpeed engines are *asleep* (offloaded / minimal footprint).
+2. **Weight sync**: trainer broadcasts updated actor weights to vLLM via NCCL (``--vllm_sync_backend nccl``).
+3. **Training phase**: vLLM goes to sleep (``--vllm_enable_sleep``), DeepSpeed wakes (``--deepspeed_enable_sleep``) and runs forward + backward + optimizer step on the actor / critic / reference / reward.
+
+Because both sides know how to sleep, they can fit on one GPU set even at large model sizes. The only memory you pay full-time for is whatever each side needs to be *resident* (model weights, KV cache budget controlled by ``--vllm_gpu_memory_utilization``).
 
 .. _hybrid_engine:
 
@@ -12,7 +27,7 @@ Launch recipe
 
 .. code-block:: bash
 
-   # launch the master node of ray in container
+   # launch the master node of ray in a container
    ray start --head --node-ip-address 0.0.0.0 --num-gpus 8
 
    # additional worker nodes (optional)
@@ -48,30 +63,83 @@ Launch recipe
       --vllm_enable_sleep --deepspeed_enable_sleep
 
 .. note::
-   Works with both single-turn and multi-turn agent modes (see :doc:`agent_training`) and with any RL algorithm (change ``--advantage_estimator`` to switch).
+
+   - Works with any RL algorithm — change ``--advantage_estimator`` to switch.
+   - Works with both single-turn and multi-turn agent modes (see :doc:`agent_training`).
 
 Key flags
 ---------
 
-Hybrid-engine essentials:
+Essential
+~~~~~~~~~
 
-- ``--colocate_all_models``: colocate vLLM engines, Actor, Reference, Reward, and Critic on the same GPUs.
-- ``--vllm_gpu_memory_utilization <0..1>``: vLLM KV-cache fraction. Start at ``0.5`` for 8×A100 and raise if stable.
-- ``--vllm_enable_sleep`` / ``--deepspeed_enable_sleep``: sleep-mode for vLLM / DeepSpeed when colocated — frees memory between phases.
-- ``--enforce_eager``: disable CUDA graphs for vLLM (required for some setups).
-- ``--vllm_sync_backend nccl``: NCCL backend for weight sync (faster than the default).
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
 
-Finer-grained colocation (when **not** using ``--colocate_all_models``):
+   * - Flag
+     - Meaning
+   * - ``--colocate_all_models``
+     - Colocate vLLM engines, Actor, Reference, Reward, and Critic on the same GPUs.
+   * - ``--vllm_gpu_memory_utilization <0..1>``
+     - vLLM KV-cache fraction. Start at ``0.5`` for 8×A100 and increase if stable.
+   * - ``--vllm_enable_sleep``
+     - vLLM sleep mode — frees most of vLLM's memory between rollouts.
+   * - ``--deepspeed_enable_sleep``
+     - DeepSpeed sleep mode — frees DeepSpeed memory between training steps.
+   * - ``--vllm_sync_backend nccl``
+     - NCCL backend for weight sync (faster than the default).
+   * - ``--enforce_eager``
+     - Disable CUDA graphs in vLLM (required for some setups; reduces memory).
 
-- ``--colocate_critic_reward``: place Critic and Reward on the same GPUs.
-- ``--colocate_actor_ref``: place Actor and Reference on the same GPUs.
-- ``--ref_reward_offload``: offload Reference and Reward to CPU during training.
+Finer-grained colocation (when **not** using ``--colocate_all_models``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Rule of thumb: ``vllm_gpu_memory_utilization`` + model memory < 1.0. For 8×A100 (80GB): ~0.6 for 8B, ~0.5 for 13B, ~0.4 for 34B. For 70B+, prefer distributed mode.
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Flag
+     - Meaning
+   * - ``--colocate_critic_reward``
+     - Place Critic and Reward on the same GPUs.
+   * - ``--colocate_actor_ref``
+     - Place Actor and Reference on the same GPUs.
+   * - ``--ref_reward_offload``
+     - Offload Reference and Reward to CPU during the actor's training phase.
+
+Memory rule of thumb
+--------------------
+
+``vllm_gpu_memory_utilization`` + model memory < 1.0. Examples for 8×A100 (80GB):
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Model size
+     - Suggested ``--vllm_gpu_memory_utilization``
+   * - 8B
+     - ``0.6`` (room for full RLHF stack)
+   * - 13B
+     - ``0.5``
+   * - 34B
+     - ``0.4`` (consider distributed mode)
+   * - 70B+
+     - Prefer distributed mode (separate GPU groups per role)
 
 Async training is mutually exclusive
 ------------------------------------
 
-Do **not** combine ``--async_train`` with ``--colocate_all_models``. Async pipelines overlap rollout and training for higher throughput at the cost of more off-policy samples; see the async section in :doc:`agent_training` for configuration.
+Do **not** combine ``--async_train`` with ``--colocate_all_models``. The async pipeline overlaps rollout and training across processes — it cannot share GPUs with sleep-mode hybrid execution. For higher throughput at the cost of off-policy noise, see the async + partial-rollout section in :doc:`agent_training`.
+
+When **not** to use Hybrid Engine
+---------------------------------
+
+Switch to distributed mode (separate GPU groups per role) when:
+
+- You hit OOM even after lowering ``--vllm_gpu_memory_utilization`` and enabling all memory savers.
+- You're training models large enough (70B+) that no single GPU can host model + KV cache.
+- You want maximum throughput via async + partial rollout (see :doc:`agent_training`).
 
 See :doc:`performance` for the full tuning guide and :doc:`troubleshooting` for OOM / NCCL / vLLM-hang issues.

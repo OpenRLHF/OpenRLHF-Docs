@@ -1,24 +1,80 @@
 Checkpointing
 =============
 
-Training large models is expensive, so being able to resume on crash is essential. OpenRLHF re-implements a resumable `DistributedSampler <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/utils/distributed_sampler.py>`_ and uses DeepSpeed's checkpoint API to save model / optimizer / scheduler state alongside dataset progress.
+Training large models is expensive and long-running, so resumability is essential. OpenRLHF saves four kinds of state at each checkpoint:
 
-Flags
------
+1. **Model weights** — DeepSpeed-format (sharded across ZeRO ranks).
+2. **Optimizer + scheduler state** — for exact resume.
+3. **Dataset progress** — via a re-implemented `resumable DistributedSampler <https://github.com/OpenRLHF/OpenRLHF/blob/main/openrlhf/utils/distributed_sampler.py>`_, so you don't re-train on already-seen data.
+4. **(Optional) HuggingFace-format model** — when ``--save_hf_ckpt`` is set, also writes a deployment-ready HF checkpoint.
 
-- ``--save_steps``: global training steps between checkpoints. For PPO, steps refer to model updates (not mini-batches).
-- ``--ckpt_path``: directory where checkpoints are written.
-- ``--load_checkpoint``: resume from ``--ckpt_path``. Gracefully falls back to training-from-scratch if the directory exists but contains no valid checkpoint.
-- ``--save_hf_ckpt``: also export a HuggingFace-format model at each checkpoint.
-- ``--disable_ds_ckpt``: skip DeepSpeed checkpoints to save disk — **training progress is no longer recoverable**.
-- ``--max_ckpt_num``: cap the number of retained checkpoints.
-- ``--max_ckpt_mem``: cap the total size (GB) of retained checkpoints.
-- ``--use_ds_universal_ckpt``: use DeepSpeed universal checkpoint.
-- ``--best_metric_key`` *(PPO only)*: eval metric for best-checkpoint saving (e.g., ``eval_default_pass1``). Empty string auto-detects the first ``pass1`` metric; ``none`` disables best-checkpoint saving.
-- ``--enable_ema`` / ``--ema_beta`` *(PPO only)*: keep an EMA copy of the policy (default beta ``0.992``).
+Resuming with ``--load_checkpoint`` gracefully falls back to training-from-scratch if the checkpoint directory exists but contains no valid checkpoint — useful for first-run / restart-on-failure scripts.
 
-Example (SFT)
--------------
+.. contents::
+   :local:
+   :depth: 2
+
+Core flags
+----------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Flag
+     - Meaning
+   * - ``--save_steps``
+     - Global training steps between checkpoints (``-1`` = never). For PPO, *steps* are model-update steps (not mini-batches).
+   * - ``--ckpt_path``
+     - Directory where checkpoints are written.
+   * - ``--load_checkpoint``
+     - Resume from ``--ckpt_path``. Falls back to training-from-scratch if the directory contains no valid checkpoint.
+   * - ``--save_hf_ckpt``
+     - Also export a HuggingFace-format model at each checkpoint (so you can deploy without DeepSpeed).
+   * - ``--disable_ds_ckpt``
+     - Skip DeepSpeed checkpoints to save disk — **training progress is no longer recoverable** (only HF-format models are kept).
+   * - ``--max_ckpt_num``
+     - Cap on the number of retained checkpoints (oldest are deleted).
+   * - ``--max_ckpt_mem``
+     - Cap on total checkpoint size in GB.
+   * - ``--use_ds_universal_ckpt``
+     - Use DeepSpeed Universal Checkpoint format (ZeRO-stage / world-size agnostic).
+   * - ``--save_path``
+     - Final HuggingFace-format model save path (always written at the end of training).
+
+PPO-only flags
+--------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Flag
+     - Meaning
+   * - ``--best_metric_key``
+     - Eval metric key for **best-checkpoint** saving (e.g., ``eval_default_pass1``). Empty string auto-detects the first ``pass1`` metric from your eval set; ``none`` disables best-checkpoint saving.
+   * - ``--enable_ema``
+     - Maintain an Exponential Moving Average copy of the policy weights, saved alongside the regular model.
+   * - ``--ema_beta``
+     - EMA decay rate (default ``0.992``). Higher = slower averaging.
+   * - ``--save_value_network``
+     - Also save the critic / value network checkpoint.
+
+Best-checkpoint tracking requires evaluation: set ``--eval_dataset`` and ``--eval_steps`` so the trainer has a metric to compare. The best checkpoint is written under a separate path so latest- and best-checkpoint paths don't collide.
+
+DeepSpeed → Universal conversion
+--------------------------------
+
+If you change ZeRO stage or world size between runs, convert the DeepSpeed checkpoint to Universal format first:
+
+.. code-block:: bash
+
+   bash examples/scripts/ckpt_ds_zero_to_universal.sh
+
+then resume with ``--use_ds_universal_ckpt``.
+
+Example: SFT
+------------
 
 .. code-block:: bash
 
@@ -38,4 +94,15 @@ Example (SFT)
       --logging_steps 1 --eval_steps -1 \
       --use_wandb {wandb_token}
 
-For an RL checkpoint recipe, add ``--save_steps`` / ``--ckpt_path`` / ``--save_hf_ckpt`` / ``--load_checkpoint`` to the PPO launch command in :doc:`hybrid_engine` (or the distributed version in :doc:`multi-node`).
+Example: RL (Ray + vLLM)
+------------------------
+
+To enable checkpointing for an RL run, add the four flags below to the launch command in :doc:`hybrid_engine` (or the distributed version in :doc:`multi-node`):
+
+.. code-block:: bash
+
+   ... \
+   --save_steps 50 \
+   --ckpt_path /openrlhf/examples/checkpoint/ckpt/ \
+   --save_hf_ckpt \
+   --load_checkpoint

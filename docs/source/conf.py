@@ -3,11 +3,11 @@
 # -- Project information
 
 project = 'OpenRLHF'
-copyright = '2025, OpenRLHF'
+copyright = '2026, OpenRLHF'
 author = 'OpenRLHF'
 
-release = '0.9'
-version = '0.9.3'
+release = '0.10'
+version = '0.10.1.post2'
 
 # -- General configuration
 
