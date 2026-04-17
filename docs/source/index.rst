@@ -8,47 +8,35 @@ OpenRLHF is a high-performance, production-ready RLHF framework that combines a 
    :align: center
    :width: 700px
 
-What's in OpenRLHF
-------------------
+Core features
+-------------
 
-**Distributed architecture (Ray + vLLM + DeepSpeed)**
-   Scales to 70B+ parameter models. vLLM accelerates generation; DeepSpeed ZeRO-3 + AutoTP + RingAttention shard training; Ray orchestrates everything across GPUs and nodes. See :doc:`architecture`.
+- **Ray + vLLM distributed architecture** — scales to 70B+ parameter models with vLLM-accelerated generation, DeepSpeed ZeRO-3 training, and Ray-based scheduling.
+- **Unified agent-based paradigm** — token-in-token-out pipeline that decouples execution mode (single-turn / multi-turn) from RL algorithm. Any algorithm pairs with any mode.
+- **State-of-the-art RL algorithms** — PPO, REINFORCE++, REINFORCE++-baseline, GRPO, Dr. GRPO, RLOO.
+- **Hybrid Engine** — colocate Actor / Critic / Reward / Reference / vLLM on the same GPUs with sleep-mode memory sharing for maximum utilization.
+- **Async training & Partial Rollout** — overlap rollout with training; partial rollout overlaps weight sync with generation via vLLM pause/resume.
+- **Single-turn rewards & multi-turn agents** — HTTP remote RM, custom Python reward functions (RFT), or full multi-turn environments with optional OpenAI-compatible chat server.
+- **Vision-Language Model RLHF** *(new in 0.10)* — train VLMs (e.g., Qwen3.5) end-to-end with image inputs.
+- **Off-policy correction** — TIS / ICEPOP / Seq-Mask-TIS to handle vLLM↔training log-prob mismatches.
+- **Production essentials** — resumable checkpoints, best-checkpoint tracking, EMA, Wandb / TensorBoard logging, SLURM multi-node, LoRA / QLoRA (non-RL trainers).
 
-**Unified agent-based execution paradigm**
-   Token-in-token-out pipeline that decouples *execution mode* (single-turn / multi-turn) from *RL algorithm* (PPO, REINFORCE++, GRPO, RLOO, ...). Any algorithm pairs with any mode. See :doc:`agent_paradigm`.
+Why OpenRLHF
+------------
 
-**State-of-the-art RL algorithms**
-   PPO, REINFORCE++, REINFORCE++-baseline, GRPO, Dr. GRPO, RLOO — selectable with one flag (``--advantage_estimator``). See the algorithm table in :doc:`agent_training`.
-
-**Hybrid Engine + async + partial rollout**
-   ``--colocate_all_models`` colocates Actor / Critic / Reward / Reference / vLLM on the same GPUs with sleep-mode memory sharing for maximum utilization. ``--async_train`` overlaps rollout with training; ``--partial_rollout`` overlaps weight sync with generation via vLLM pause/resume. See :doc:`hybrid_engine` and :doc:`performance`.
-
-**Vision-Language Model (VLM) RLHF** *(new in 0.10)*
-   Train VLMs (e.g., Qwen3.5) end-to-end with image inputs. Auto-detection via ``vision_config``, ``AutoProcessor`` for multimodal token insertion, multi-image prompts, and optional vision-encoder freezing. See the VLM section in :doc:`agent_training`.
-
-**Single-turn rewards & multi-turn agents**
-   Single-turn: HTTP remote RM (``--remote_rm_url``) or local Python reward function (RFT). Multi-turn: ``--agent_func_path`` plugs in a custom environment with ``reset()`` / ``step()`` (or wrap an OpenAI-compatible chat server). See :doc:`agent_training`.
-
-**Off-policy correction**
-   TIS / ICEPOP / Seq-Mask-TIS for vLLM rollout↔training log-prob mismatch (``--enable_vllm_is_correction`` + ``--vllm_is_correction_type``).
-
-**Production essentials**
-   Resumable checkpoints (``--save_steps`` / ``--load_checkpoint``), best-checkpoint tracking (``--best_metric_key``), EMA (``--enable_ema``), Wandb / TensorBoard logging, SLURM multi-node, LoRA / QLoRA for non-RL trainers.
+- **Performance** — vLLM-accelerated generation eliminates the 80% rollout bottleneck; Hybrid Engine eliminates GPU idle time.
+- **Flexibility** — switch between sync / async pipelines, single / multi-turn modes, and any of six RL algorithms with single-flag changes.
+- **Compatibility** — native HuggingFace model loading; no custom checkpoint format.
+- **Production-ready** — full checkpoint/resume, best-model tracking, multi-node SLURM, comprehensive logging.
+- **Extensible** — plug in custom reward functions or multi-turn environments via a Python file; no trainer modifications needed.
 
 Start here
 ----------
 
-- New users: :doc:`quick_start` — installation and your first training run.
-- Mental model: :doc:`agent_paradigm` and :doc:`architecture`.
-- Something broke: :doc:`troubleshooting`.
-
-Quick Links
------------
-
-- **Getting Started**: :doc:`quick_start`
-- **Core Concepts**: :doc:`agent_paradigm` | :doc:`architecture`
-- **Training Guides**: :doc:`agent_training` (RM, RL, single/multi-turn, VLM) | :doc:`non_rl` (SFT, DPO) | :doc:`common_options`
-- **Scaling & Ops**: :doc:`hybrid_engine` | :doc:`performance` | :doc:`checkpoint` | :doc:`sequence_parallelism` | :doc:`multi-node`
+- **New users**: :doc:`quick_start` — installation and your first training run.
+- **Mental model**: :doc:`architecture` and :doc:`agent_paradigm`.
+- **Pick a recipe**: :doc:`agent_training` (RL) or :doc:`non_rl` (SFT / RM / DPO).
+- **Something broke**: :doc:`troubleshooting`.
 
 Resources
 ---------
@@ -75,8 +63,10 @@ Contents
    :maxdepth: 2
    :caption: Core Concepts
 
-   agent_paradigm
    architecture
+   agent_paradigm
+   hybrid_engine
+   async_training
 
 .. toctree::
    :maxdepth: 2
@@ -90,7 +80,6 @@ Contents
    :maxdepth: 2
    :caption: Scaling & Operations
 
-   hybrid_engine
    performance
    checkpoint
    sequence_parallelism

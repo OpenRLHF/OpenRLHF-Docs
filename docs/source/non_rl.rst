@@ -20,19 +20,26 @@ Supervised Fine-tuning (SFT)
 .. code-block:: bash
 
    deepspeed --module openrlhf.cli.train_sft \
-      --max_len 2048 \
-      --dataset Open-Orca/OpenOrca \
-      --input_key question --output_key response \
-      --input_template $'User: {}\\nAssistant: ' \
-      --train_batch_size 256 --micro_train_batch_size 8 \
-      --max_samples 500000 \
       --pretrain meta-llama/Meta-Llama-3-8B \
-      --save_path ./checkpoint/llama3-8b-sft \
-      --save_steps -1 --logging_steps 1 --eval_steps -1 \
-      --zero_stage 2 --max_epochs 1 --param_dtype bf16 \
+      --dataset Open-Orca/OpenOrca \
+      --input_key question \
+      --output_key response \
+      --input_template $'User: {}\\nAssistant: ' \
+      --max_samples 500000 \
+      --max_len 2048 \
+      --train_batch_size 256 \
+      --micro_train_batch_size 8 \
+      --max_epochs 1 \
+      --learning_rate 5e-6 \
+      --zero_stage 2 \
+      --param_dtype bf16 \
       --attn_implementation flash_attention_2 \
       --packing_samples \
-      --learning_rate 5e-6 --gradient_checkpointing \
+      --gradient_checkpointing \
+      --save_path ./checkpoint/llama3-8b-sft \
+      --save_steps -1 \
+      --logging_steps 1 \
+      --eval_steps -1 \
       --use_wandb {wandb_token}
 
 SFT-specific flags:
@@ -58,16 +65,25 @@ Reward Model (RM) Training
 .. code-block:: bash
 
    deepspeed --module openrlhf.cli.train_rm \
-      --save_path ./checkpoint/llama3-8b-rm \
-      --save_steps -1 --logging_steps 1 --eval_steps -1 \
-      --train_batch_size 256 --micro_train_batch_size 4 \
       --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
-      --param_dtype bf16 --max_epochs 1 --max_len 8192 \
-      --zero_stage 3 --learning_rate 9e-6 \
       --dataset OpenRLHF/preference_dataset_mixture2_and_safe_pku \
-      --apply_chat_template --chosen_key chosen --rejected_key rejected \
+      --apply_chat_template \
+      --chosen_key chosen \
+      --rejected_key rejected \
+      --max_len 8192 \
+      --train_batch_size 256 \
+      --micro_train_batch_size 4 \
+      --max_epochs 1 \
+      --learning_rate 9e-6 \
+      --zero_stage 3 \
+      --param_dtype bf16 \
       --attn_implementation flash_attention_2 \
-      --packing_samples --gradient_checkpointing \
+      --packing_samples \
+      --gradient_checkpointing \
+      --save_path ./checkpoint/llama3-8b-rm \
+      --save_steps -1 \
+      --logging_steps 1 \
+      --eval_steps -1 \
       --use_wandb {wandb_token}
 
 RM-specific flags:
@@ -100,16 +116,25 @@ Direct Preference Optimization (DPO)
 .. code-block:: bash
 
    deepspeed --module openrlhf.cli.train_dpo \
-      --save_path ./checkpoint/llama3-8b-dpo \
-      --save_steps -1 --logging_steps 1 --eval_steps -1 \
-      --train_batch_size 256 --micro_train_batch_size 1 \
       --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
-      --param_dtype bf16 --max_epochs 1 --max_len 8192 \
-      --zero_stage 3 --learning_rate 5e-7 --beta 0.1 \
       --dataset OpenRLHF/preference_dataset_mixture2_and_safe_pku \
-      --apply_chat_template --chosen_key chosen --rejected_key rejected \
+      --apply_chat_template \
+      --chosen_key chosen \
+      --rejected_key rejected \
+      --max_len 8192 \
+      --train_batch_size 256 \
+      --micro_train_batch_size 1 \
+      --max_epochs 1 \
+      --learning_rate 5e-7 \
+      --beta 0.1 \
+      --zero_stage 3 \
+      --param_dtype bf16 \
       --attn_implementation flash_attention_2 \
       --gradient_checkpointing \
+      --save_path ./checkpoint/llama3-8b-dpo \
+      --save_steps -1 \
+      --logging_steps 1 \
+      --eval_steps -1 \
       --use_wandb {wandb_token}
 
 DPO-specific flags:

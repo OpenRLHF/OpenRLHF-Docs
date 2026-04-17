@@ -79,19 +79,28 @@ Example: SFT
 .. code-block:: bash
 
    deepspeed --module openrlhf.cli.train_sft \
-      --max_len 2048 \
-      --dataset Open-Orca/OpenOrca \
-      --input_key question --output_key response \
-      --input_template $'User: {}\nAssistant: ' \
-      --train_batch_size 256 --micro_train_batch_size 2 \
-      --max_samples 500000 \
       --pretrain meta-llama/Meta-Llama-3-8B \
-      --save_path ./checkpoint/llama3-8b-sft \
-      --zero_stage 2 --max_epochs 1 --param_dtype bf16 \
+      --dataset Open-Orca/OpenOrca \
+      --input_key question \
+      --output_key response \
+      --input_template $'User: {}\nAssistant: ' \
+      --max_samples 500000 \
+      --max_len 2048 \
+      --train_batch_size 256 \
+      --micro_train_batch_size 2 \
+      --max_epochs 1 \
+      --learning_rate 5e-6 \
+      --zero_stage 2 \
+      --param_dtype bf16 \
       --attn_implementation flash_attention_2 \
-      --learning_rate 5e-6 --gradient_checkpointing \
-      --save_steps 200 --ckpt_path ./ckpt --save_hf_ckpt --load_checkpoint \
-      --logging_steps 1 --eval_steps -1 \
+      --gradient_checkpointing \
+      --save_path ./checkpoint/llama3-8b-sft \
+      --ckpt_path ./ckpt \
+      --save_steps 200 \
+      --save_hf_ckpt \
+      --load_checkpoint \
+      --logging_steps 1 \
+      --eval_steps -1 \
       --use_wandb {wandb_token}
 
 Example: RL (Ray + vLLM)
