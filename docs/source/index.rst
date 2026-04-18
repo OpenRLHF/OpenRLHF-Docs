@@ -1,7 +1,7 @@
 Welcome to OpenRLHF's documentation!
 ====================================
 
-OpenRLHF is a high-performance, production-ready RLHF framework that combines a **Ray + vLLM distributed architecture** with a **unified agent-based design paradigm** for scalable and extensible reinforcement learning from human feedback.
+OpenRLHF is **the first** high-performance, production-ready open-source RLHF framework that combines a **Ray + vLLM distributed architecture** with a **unified agent-based design paradigm** for scalable and extensible reinforcement learning from human feedback.
 
 .. image:: _static/openrlhf-arch.png
    :alt: OpenRLHF Architecture
