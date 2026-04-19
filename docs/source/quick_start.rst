@@ -33,8 +33,32 @@ The recommended path is to install inside an NVIDIA PyTorch container:
    cd OpenRLHF && pip install -e .
 
 .. note::
-   We recommend vLLM 0.19.0+ for best performance. See the `Dockerfiles
+   We recommend vLLM 0.19.0+ for best performance. For the Muon optimizer you additionally
+   need **DeepSpeed ≥ 0.18.2**. See the `Dockerfiles
    <https://github.com/OpenRLHF/OpenRLHF/tree/main/dockerfile>`_ and :ref:`nvidia-docker`.
+
+.. _hierarchical_cli_summary:
+
+A note on the CLI
+-----------------
+
+OpenRLHF 0.10.2 uses a **hierarchical CLI** — every flag lives under a dotted section prefix.
+For example:
+
+.. code-block:: bash
+
+   --actor.model_name_or_path Qwen/Qwen3-4B-Thinking-2507 \
+   --reward.remote_url examples/python/math_reward_func.py \
+   --data.prompt_dataset zhuzilin/dapo-math-17k \
+   --ds.zero_stage 3 \
+   --vllm.num_engines 2 \
+   --rollout.batch_size 128 \
+   --train.colocate_all \
+   --ckpt.output_dir ./exp/Qwen3-4B-Thinking
+
+The section map and a full old-flag → new-flag migration table are in :doc:`common_options`
+(see :ref:`flag_migration`). Flat flags from earlier releases (``--pretrain``, ``--zero_stage``,
+``--vllm_num_engines``…) no longer parse.
 
 First run (RLVR with Qwen3-4B)
 ------------------------------
@@ -51,29 +75,29 @@ with a Python reward function (no reward-model training required). Requires 4 GP
    ray job submit --address="http://127.0.0.1:8265" \
       --runtime-env-json='{"working_dir": "/openrlhf"}' \
       -- python3 -m openrlhf.cli.train_ppo_ray \
-      --pretrain Qwen/Qwen3-4B-Thinking-2507 \
-      --remote_rm_url examples/python/math_reward_func.py \
-      --prompt_data zhuzilin/dapo-math-17k \
-      --input_key prompt \
-      --label_key label \
-      --apply_chat_template \
-      --packing_samples \
-      --ref_num_nodes 1 --ref_num_gpus_per_node 4 \
-      --actor_num_nodes 1 --actor_num_gpus_per_node 4 \
-      --vllm_num_engines 2 --vllm_tensor_parallel_size 2 \
-      --colocate_all_models \
-      --vllm_gpu_memory_utilization 0.7 \
-      --vllm_enable_sleep --deepspeed_enable_sleep \
-      --vllm_sync_backend nccl --enforce_eager \
-      --advantage_estimator reinforce_baseline \
-      --use_kl_loss --kl_estimator k2 --init_kl_coef 1e-5 \
-      --rollout_batch_size 128 --n_samples_per_prompt 8 \
-      --train_batch_size 1024 \
-      --max_len 8192 --max_new_tokens 4096 \
-      --zero_stage 3 --param_dtype bf16 \
-      --gradient_checkpointing \
-      --actor_learning_rate 5e-7 \
-      --save_path ./exp/Qwen3-4B-Thinking
+      --actor.model_name_or_path Qwen/Qwen3-4B-Thinking-2507 \
+      --reward.remote_url examples/python/math_reward_func.py \
+      --data.prompt_dataset zhuzilin/dapo-math-17k \
+      --data.input_key prompt \
+      --data.label_key label \
+      --data.apply_chat_template \
+      --ds.packing_samples \
+      --ref.num_nodes 1 --ref.num_gpus_per_node 4 \
+      --actor.num_nodes 1 --actor.num_gpus_per_node 4 \
+      --vllm.num_engines 2 --vllm.tensor_parallel_size 2 \
+      --train.colocate_all \
+      --vllm.gpu_memory_utilization 0.7 \
+      --vllm.enable_sleep --ds.enable_sleep \
+      --vllm.sync_backend nccl --vllm.enforce_eager \
+      --algo.advantage.estimator reinforce_baseline \
+      --algo.kl.use_loss --algo.kl.estimator k2 --algo.kl.init_coef 1e-5 \
+      --rollout.batch_size 128 --rollout.n_samples_per_prompt 8 \
+      --train.batch_size 1024 \
+      --data.max_len 8192 --rollout.max_new_tokens 4096 \
+      --ds.zero_stage 3 --ds.param_dtype bf16 \
+      --actor.gradient_checkpointing_enable \
+      --actor.adam.lr 5e-7 \
+      --ckpt.output_dir ./exp/Qwen3-4B-Thinking
 
 For the full recipe (with off-policy correction, dynamic filtering, length budgets, ring attention,
 checkpointing) see :doc:`hybrid_engine`. To swap in your own dataset, RM, or multi-turn
@@ -84,12 +108,13 @@ Prepare datasets
 
 Key dataset flags (shared across trainers):
 
-- ``--input_key``: JSON key holding the input (text or chat messages).
-- ``--apply_chat_template``: use the tokenizer's `chat template
+- ``--data.input_key``: JSON key holding the input (text or chat messages).
+- ``--data.apply_chat_template``: use the tokenizer's `chat template
   <https://huggingface.co/docs/transformers/main/en/chat_templating>`_.
-- ``--input_template``: custom template string (alternative to chat template).
-- ``--dataset_probs`` / ``--prompt_data_probs``: mix multiple datasets (e.g., ``0.1,0.4,0.5``).
-- ``--eval_dataset``: evaluation dataset path.
+- ``--data.input_template``: custom template string (alternative to chat template).
+- ``--data.dataset_probs`` *(SFT/RM/DPO)* / ``--data.prompt_probs`` *(PPO)*: mix multiple
+  datasets (e.g., ``0.1,0.4,0.5``).
+- ``--eval.dataset``: evaluation dataset path.
 
 Chat-template example:
 
@@ -116,9 +141,10 @@ Pretrained models
 
 Checkpoints are HuggingFace-compatible. Point the trainer at them with:
 
-- ``--pretrain`` — actor / base model
-- ``--reward_pretrain`` — reward model
-- ``--critic_pretrain`` — critic model (PPO)
+- ``--actor.model_name_or_path`` — actor / base model (PPO)
+- ``--reward.model_name_or_path`` — reward model (PPO)
+- ``--critic.model_name_or_path`` — critic model (PPO; auto-falls back to actor or first reward)
+- ``--model.model_name_or_path`` — the single model trained in SFT / RM / DPO
 
 Pre-trained examples are on `HuggingFace OpenRLHF <https://huggingface.co/OpenRLHF>`_.
 
@@ -142,6 +168,7 @@ Where to next
 -------------
 
 - **Mental model** — :doc:`architecture`, :doc:`agent_paradigm`.
+- **Upgrading from 0.9.x / early 0.10** — :ref:`flag_migration` in :doc:`common_options`.
 - **Tuning / scaling** — :doc:`hybrid_engine`, :doc:`async_training`, :doc:`performance`,
   :doc:`multi-node`.
 - **Errors** — :doc:`troubleshooting`.

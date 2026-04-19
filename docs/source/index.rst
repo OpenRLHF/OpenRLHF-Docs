@@ -26,8 +26,15 @@ Highlights
 - **Single-turn rewards & multi-turn agents** — HTTP remote RM, custom Python reward functions
   (Reinforced Fine-Tuning), full multi-turn environments, or wrap vLLM as an OpenAI-compatible
   chat server.
-- **Vision-Language Model RLHF** *(new in 0.10)* — train VLMs (e.g., Qwen3.5) end-to-end with
-  image inputs through the same agent pipeline.
+- **Vision-Language Model RLHF** *(0.10)* — train VLMs (e.g., Qwen3.5) end-to-end with image
+  inputs through the same agent pipeline.
+- **Muon optimizer** *(new in 0.10.2)* — DeepSpeed-native ``MuonWithAuxAdam`` for SFT / RM / DPO /
+  PPO. Per-entity selection in PPO (``--actor.optim muon`` with Adam critic is a one-liner).
+  Requires DeepSpeed ≥ 0.18.2.
+- **Hierarchical CLI** *(new in 0.10.2)* — every flag lives under a named section
+  (``--ds.*``, ``--vllm.*``, ``--rollout.*``, ``--data.*``, ``--train.*``, ``--eval.*``,
+  ``--ckpt.*``, ``--logger.*``, ``--algo.*``, ``--actor.*``, ``--critic.*``, ``--ref.*``,
+  ``--reward.*``). Hierarchy mirrors ownership and is self-documenting at ``--help``.
 - **Off-policy correction** — TIS / ICEPOP / Seq-Mask-TIS handle vLLM ↔ training log-prob
   mismatches.
 - **Production essentials** — resumable checkpoints, best-checkpoint tracking, EMA, Wandb /
@@ -47,6 +54,8 @@ Start here
      - :doc:`agent_training` (RL training) or :doc:`non_rl` (SFT / RM / DPO).
    * - **Look up a flag**
      - :doc:`common_options` (shared) or the trainer-specific page above.
+   * - **Upgrading from 0.9.x / early 0.10**
+     - :ref:`flag_migration` in :doc:`common_options`.
    * - **Scale or tune**
      - :doc:`hybrid_engine`, :doc:`async_training`, :doc:`performance`, :doc:`multi-node`.
    * - **Something broke**

@@ -6,8 +6,8 @@ project = 'OpenRLHF'
 copyright = '2026, OpenRLHF'
 author = 'OpenRLHF'
 
-release = '0.10'
-version = '0.10.1.post2'
+release = '0.10.2'
+version = '0.10.2'
 
 # -- General configuration
 

@@ -4,13 +4,13 @@ Multi-node Training
 How to launch Ray PPO on Slurm?
 -----------------------------------
 
-Here is an example
+Here is an example (uses the 0.10.2 hierarchical CLI):
 
 .. code-block:: bash
 
     #!/bin/bash
 
-    #SBATCH -p { partition }              
+    #SBATCH -p { partition }
     #SBATCH -A { account }
     #SBATCH -J { jobname }
     #SBATCH -N 2                       # 64x8x4
@@ -66,42 +66,42 @@ Here is an example
     && /root/.local/bin/ray job submit --address=http://localhost:8265 \
         --runtime-env-json='{\"working_dir\": \"/openrlhf\", \"pip\": \"/openrlhf/requirements.txt\"}' \
         -- python3 -m openrlhf.cli.train_ppo_ray \
-        --ref_num_nodes 1 \
-        --ref_num_gpus_per_node 4 \
-        --reward_num_nodes 1 \
-        --reward_num_gpus_per_node 4 \
-        --critic_num_nodes 1 \
-        --critic_num_gpus_per_node 4 \
-        --actor_num_nodes 1 \
-        --actor_num_gpus_per_node 4 \
-        --vllm_num_engines 4 \
-        --vllm_tensor_parallel_size 2 \
-        --colocate_critic_reward \
-        --colocate_actor_ref \
-        --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
-        --reward_pretrain OpenRLHF/Llama-3-8b-rm-mixture \
-        --save_path /openrlhf/examples/checkpoint/llama3-8b-rlhf \
-        --micro_train_batch_size 8 \
-        --train_batch_size 128 \
-        --micro_rollout_batch_size 16 \
-        --rollout_batch_size 1024 \
-        --max_samples 100000 \
-        --max_epochs 1 \
-        --max_len 2048 \
-        --zero_stage 3 \
-        --param_dtype bf16 \
-        --actor_learning_rate 5e-7 \
-        --critic_learning_rate 9e-6 \
-        --init_kl_coef 0.01 \
-        --prompt_data OpenRLHF/prompt-collection-v0.1 \
-        --input_key context_messages \
-        --apply_chat_template \
-        --normalize_reward \
-        --vllm_sync_backend nccl \
-        --packing_samples \
-        --adam_offload \
-        --gradient_checkpointing \
-        --use_wandb {wandb_token}" &>> ${JOBLOG}
+        --ref.num_nodes 1 \
+        --ref.num_gpus_per_node 4 \
+        --reward.num_nodes 1 \
+        --reward.num_gpus_per_node 4 \
+        --critic.num_nodes 1 \
+        --critic.num_gpus_per_node 4 \
+        --actor.num_nodes 1 \
+        --actor.num_gpus_per_node 4 \
+        --vllm.num_engines 4 \
+        --vllm.tensor_parallel_size 2 \
+        --train.colocate_critic_reward \
+        --train.colocate_actor_ref \
+        --actor.model_name_or_path OpenRLHF/Llama-3-8b-sft-mixture \
+        --reward.model_name_or_path OpenRLHF/Llama-3-8b-rm-mixture \
+        --ckpt.output_dir /openrlhf/examples/checkpoint/llama3-8b-rlhf \
+        --train.micro_batch_size 8 \
+        --train.batch_size 128 \
+        --rollout.micro_batch_size 16 \
+        --rollout.batch_size 1024 \
+        --data.max_samples 100000 \
+        --train.max_epochs 1 \
+        --data.max_len 2048 \
+        --ds.zero_stage 3 \
+        --ds.param_dtype bf16 \
+        --actor.adam.lr 5e-7 \
+        --critic.adam.lr 9e-6 \
+        --algo.kl.init_coef 0.01 \
+        --data.prompt_dataset OpenRLHF/prompt-collection-v0.1 \
+        --data.input_key context_messages \
+        --data.apply_chat_template \
+        --reward.normalize_enable \
+        --vllm.sync_backend nccl \
+        --ds.packing_samples \
+        --ds.adam_offload \
+        --actor.gradient_checkpointing_enable \
+        --logger.wandb.key {wandb_token}" &>> ${JOBLOG}
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') Job ${SLURM_JOB_ID} stopped ..." &>> ${JOBLOG}
 
@@ -109,13 +109,13 @@ Here is an example
 How to launch SFT/RM/DPO training on Slurm?
 ----------------------------------------------
 
-Here is an example for DPO
+Here is an example for DPO:
 
 .. code-block:: bash
 
     #!/bin/bash
 
-    #SBATCH -p { partition }              
+    #SBATCH -p { partition }
     #SBATCH -A { account }
     #SBATCH -J { jobname }
     #SBATCH -N 1                      # 64x8x4
@@ -134,27 +134,27 @@ Here is an example for DPO
 
     readonly training_commands=" \
         openrlhf.cli.train_dpo \
-        --save_path ./checkpoint/llama3-8b-dpo \
-        --save_steps -1 \
-        --logging_steps 1 \
-        --eval_steps -1 \
-        --train_batch_size 256 \
-        --micro_train_batch_size 1 \
-        --pretrain OpenRLHF/Llama-3-8b-sft-mixture \
-        --param_dtype bf16 \
-        --max_epochs 1 \
-        --max_len 8192 \
-        --zero_stage 3 \
-        --learning_rate 9e-6 \
-        --beta 0.1 \
-        --dataset OpenRLHF/preference_dataset_mixture2_and_safe_pku \
-        --apply_chat_template \
-        --chosen_key chosen \
-        --rejected_key rejected \
-        --packing_samples \
-        --attn_implementation flash_attention_2 \
-        --gradient_checkpointing \
-        --use_wandb {wandb_token}"
+        --ckpt.output_dir ./checkpoint/llama3-8b-dpo \
+        --ckpt.save_steps -1 \
+        --logger.logging_steps 1 \
+        --eval.steps -1 \
+        --train.batch_size 256 \
+        --train.micro_batch_size 1 \
+        --model.model_name_or_path OpenRLHF/Llama-3-8b-sft-mixture \
+        --ds.param_dtype bf16 \
+        --train.max_epochs 1 \
+        --data.max_len 8192 \
+        --ds.zero_stage 3 \
+        --adam.lr 5e-7 \
+        --model.beta 0.1 \
+        --data.dataset OpenRLHF/preference_dataset_mixture2_and_safe_pku \
+        --data.apply_chat_template \
+        --data.chosen_key chosen \
+        --data.rejected_key rejected \
+        --ds.packing_samples \
+        --ds.attn_implementation flash_attention_2 \
+        --model.gradient_checkpointing_enable \
+        --logger.wandb.key {wandb_token}"
 
     echo $training_commands &>> ${JOBLOG}
 
@@ -187,7 +187,7 @@ On machine A (with V100):
 .. code-block:: bash
 
     ray start --node-ip-address=<IP of machine A> --resources '{"v100": 1}'
-    
+
 On machine B (with H100):
 
 .. code-block:: bash
@@ -222,7 +222,7 @@ When submitting tasks, you can specify the resources required for the task. For 
     # Launch Tasks
     result1 = reference_or_reward_model.options(placement_group=pg, resources={"v100": 1}).remote()
     result2 = actor_or_critic_model.options(placement_group=pg, resources={"h100": 1}).remote()
-    
+
 In this example, task1 will be scheduled on a node with the small GPU memory resource (i.e., machine A), and task2 will be scheduled on a node with the large GPU memory resource (i.e., machine B).
 
 Based on this, you can modify the ``Ray resources``-related code in `train_ppo_ray.py <https://github.com/OpenRLHF/OpenRLHF/blob/main/examples/train_ppo_ray.py>`_.
@@ -232,20 +232,20 @@ For example, we want to deploy the ``Reference Model`` on a ``V100 x8`` node (ot
 
     ray start --node-ip-address=<IP of machine A> --resources '{"v100": 8}'
 
-    # Modify 
+    # Modify
     ref_model = PPORayActorGroup(
-            args.ref_num_nodes,
-            args.ref_num_gpus_per_node,
+            args.ref.num_nodes,
+            args.ref.num_gpus_per_node,
             ReferenceModelRayActor,
             pg=pg,
             num_gpus_per_actor=0.25 if pg else 1,
         )
 
     # To
-    # Do not use --colocate_actor_ref for the models
+    # Do not use --train.colocate_actor_ref for the models
     ref_model = PPORayActorGroup(
-            args.ref_num_nodes,
-            args.ref_num_gpus_per_node,
+            args.ref.num_nodes,
+            args.ref.num_gpus_per_node,
             ReferenceModelRayActor,
             pg=pg,
             num_gpus_per_actor=1,

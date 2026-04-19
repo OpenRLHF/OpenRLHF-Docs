@@ -29,16 +29,19 @@ vLLM — High-performance inference engine
 
 `vLLM <https://github.com/vllm-project/vllm>`_ provides high-throughput, memory-efficient generation through PagedAttention, continuous batching, prefix caching, and CUDA graphs. OpenRLHF integrates vLLM with **Auto Tensor Parallelism (AutoTP)** and **Pipeline Parallelism (PP)**, so a single rollout can be sharded across multiple GPUs without changing the training loop.
 
-Weight sync between the trainer and vLLM uses NCCL (``--vllm_sync_backend nccl``) for low-latency updates after each training step.
+Weight sync between the trainer and vLLM uses NCCL (``--vllm.sync_backend nccl``) for low-latency updates after each training step.
 
 DeepSpeed — Memory-efficient training
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Training uses `DeepSpeed <https://github.com/deepspeedai/DeepSpeed>`_ ZeRO-3 to shard optimizer state, gradients, and parameters across GPUs. Optional features:
 
-- `deepcompile <https://github.com/deepspeedai/DeepSpeed/blob/master/blogs/deepcompile/README.md>`_ — graph compilation (``--deepcompile``).
-- `AutoTP <https://github.com/deepspeedai/DeepSpeed/blob/master/blogs/huggingface-tp/README.md>`_ — DeepSpeed tensor parallelism (``--ds_tensor_parallel_size``).
-- `RingAttention <https://arxiv.org/abs/2310.01889>`_ for long contexts (``--ring_attn_size``; see :doc:`sequence_parallelism`).
+- `deepcompile <https://github.com/deepspeedai/DeepSpeed/blob/master/blogs/deepcompile/README.md>`_ — graph compilation (``--ds.deepcompile``).
+- `AutoTP <https://github.com/deepspeedai/DeepSpeed/blob/master/blogs/huggingface-tp/README.md>`_ — DeepSpeed tensor parallelism (``--ds.tensor_parallel_size``).
+- `RingAttention <https://arxiv.org/abs/2310.01889>`_ for long contexts (``--ds.ring_attn_size``; see :doc:`sequence_parallelism`).
+- Optimizer choice — Adam (default) or Muon via ``--optim muon`` (single-model trainers) /
+  ``--actor.optim muon`` (PPO). Requires DeepSpeed ≥ 0.18.2 and is incompatible with
+  ``--ds.adam_offload``.
 
 The result: large-model training works directly from HuggingFace checkpoints — no model conversion, no custom training framework.
 
@@ -71,7 +74,7 @@ half the GPU clock. The Hybrid Engine solves this by colocating Actor / Critic /
 - Both sides know how to release memory between phases, so they can fit on one GPU set even at
   large model sizes.
 
-Trigger flags: ``--colocate_all_models --vllm_enable_sleep --deepspeed_enable_sleep``. This is the
+Trigger flags: ``--train.colocate_all --vllm.enable_sleep --ds.enable_sleep``. This is the
 recommended default on any cluster where memory permits. See :doc:`hybrid_engine` for the full
 configuration and tuning notes.
 
@@ -80,14 +83,17 @@ Async + Partial Rollout (concurrent pipeline)
 
 Async mode runs rollout and training **concurrently** instead of alternating:
 
-- ``--async_train`` overlaps the two phases through a bounded queue (``--async_queue_size``).
-- ``--partial_rollout`` goes further — vLLM never fully stops; on weight sync it **pauses** the
-  in-flight requests, swaps weights, and **resumes**. Generation overlaps with weight broadcast at
-  the cost of slight off-policy noise (in-flight samples mix old and new weights).
+- ``--train.async_enable`` overlaps the two phases through a bounded queue
+  (``--train.async_queue_size``).
+- ``--train.partial_rollout_enable`` goes further — vLLM never fully stops; on weight sync it
+  **pauses** the in-flight requests, swaps weights, and **resumes**. Generation overlaps with
+  weight broadcast at the cost of slight off-policy noise (in-flight samples mix old and new
+  weights).
 
 Async pipelines deliver the highest throughput and pair naturally with off-policy correction
-(``--enable_vllm_is_correction --vllm_is_correction_type icepop``). They are mutually exclusive
-with vLLM sleep mode, but can still colocate the DeepSpeed models. See :doc:`async_training`.
+(``--algo.advantage.is_correction_enable --algo.advantage.is_correction_type icepop``). They are
+mutually exclusive with vLLM sleep mode, but can still colocate the DeepSpeed models. See
+:doc:`async_training`.
 
 Key benefits
 ------------

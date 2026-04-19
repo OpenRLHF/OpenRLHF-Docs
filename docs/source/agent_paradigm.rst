@@ -66,9 +66,9 @@ Core design principles
    * - **Token-in-Token-out**
      - Trajectories are stored as token IDs and log-probs, never re-detokenized between sampling and training. Eliminates text-level mismatches; exactly preserves whatever vLLM produced.
    * - **Unified interface**
-     - Single-turn and multi-turn share the same ``AgentExecutorBase`` API. Switching modes is a one-flag change (``--agent_func_path``); the trainer code path is identical.
+     - Single-turn and multi-turn share the same ``AgentExecutorBase`` API. Switching modes is a one-flag change (``--train.agent_func_path``); the trainer code path is identical.
    * - **Algorithm-agnostic**
-     - Algorithms (PPO, REINFORCE++, GRPO, RLOO, Dr. GRPO, REINFORCE++-baseline) are selected with ``--advantage_estimator`` and consume the same trajectory format. Adding a new algorithm doesn't require touching the executors.
+     - Algorithms (PPO, REINFORCE++, GRPO, RLOO, Dr. GRPO, REINFORCE++-baseline) are selected with ``--algo.advantage.estimator`` and consume the same trajectory format. Adding a new algorithm doesn't require touching the executors.
    * - **Pipeline-agnostic**
      - Sync (Hybrid Engine) and async (with optional partial rollout) pipelines both feed the same loss layer. Throughput vs. on-policy-ness is a deployment choice, not an algorithmic one.
    * - **Extensible**
@@ -92,12 +92,12 @@ Execution mode and RL algorithm are two **independent** axes — every combinati
    * - **Single-Turn** *(default)*
      - Standard RLHF, RLVR, Reinforced Fine-Tuning with custom rewards
        (math / code / format / multi-objective)
-     - default; optionally ``--remote_rm_url`` (HTTP RM server or local Python file)
+     - default; optionally ``--reward.remote_url`` (HTTP RM server or local Python file)
      - ⭐ — covers ~99% of use cases
    * - **Multi-Turn**
      - Multi-step reasoning with environment feedback, code execution loops, game playing,
        tool use, agent training
-     - ``--agent_func_path /path/to/agent.py``
+     - ``--train.agent_func_path /path/to/agent.py``
      - ⭐⭐ — implement ``reset()`` / ``step()``
 
 Pipelines (sync vs. async)
@@ -117,13 +117,13 @@ A third orthogonal axis — choose based on your throughput / convergence trade-
      - Default. Best convergence stability; best throughput on colocated GPUs. See
        :doc:`hybrid_engine`.
    * - **Async**
-     - Rollout and train run concurrently through a bounded queue (``--async_queue_size``);
-       samples are slightly off-policy
-     - Throughput-critical, convergence already validated. ``--async_train``.
+     - Rollout and train run concurrently through a bounded queue
+       (``--train.async_queue_size``); samples are slightly off-policy
+     - Throughput-critical, convergence already validated. ``--train.async_enable``.
    * - **Async + Partial Rollout**
      - Generation never stops — vLLM pause/resume swaps weights mid-flight
      - Maximum overlap; in-flight samples may contain old + new weight tokens.
-       ``--async_train --partial_rollout``. See :doc:`async_training`.
+       ``--train.async_enable --train.partial_rollout_enable``. See :doc:`async_training`.
 
 Worked combinations
 -------------------
@@ -163,10 +163,11 @@ How to use
 
 **Selecting the execution mode**
 
-- Single-turn (default): no extra flag, or ``--remote_rm_url <http-url-or-py-file>`` for custom rewards.
-- Multi-turn: ``--agent_func_path /path/to/agent_func.py``.
+- Single-turn (default): no extra flag, or ``--reward.remote_url <http-url-or-py-file>`` for
+  custom rewards.
+- Multi-turn: ``--train.agent_func_path /path/to/agent_func.py``.
 
-**Selecting the RL algorithm** — set ``--advantage_estimator`` to one of:
+**Selecting the RL algorithm** — set ``--algo.advantage.estimator`` to one of:
 
 - ``gae`` — PPO (default; uses a critic).
 - ``reinforce`` — REINFORCE++.
@@ -177,9 +178,9 @@ How to use
 
 **Selecting the pipeline**
 
-- Sync + Hybrid Engine (default): ``--colocate_all_models --vllm_enable_sleep --deepspeed_enable_sleep``.
-- Async: ``--async_train`` (optionally ``--async_queue_size N``).
-- Async + partial rollout: ``--async_train --partial_rollout``.
+- Sync + Hybrid Engine (default): ``--train.colocate_all --vllm.enable_sleep --ds.enable_sleep``.
+- Async: ``--train.async_enable`` (optionally ``--train.async_queue_size N``).
+- Async + partial rollout: ``--train.async_enable --train.partial_rollout_enable``.
 
 For runnable recipes covering every combination, see :doc:`agent_training`.
 
