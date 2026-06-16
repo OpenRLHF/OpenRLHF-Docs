@@ -525,7 +525,7 @@ Only the adapter is saved. Merge it back with the base model to deploy:
       --lora_path ./checkpoint/llama3-8b-rm \
       --output_path ./checkpoint/llama-3-8b-rm-combined \
       --is_rm \
-      --param_dtype bf16
+      --ds.param_dtype bf16
 
 Use ``--is_rm`` when merging a reward model (preserves the score head).
 
